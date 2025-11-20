@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiro Voice Training - Debug Mode</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .error {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Mode</h1>
+    <div id="root">Loading...</div>
+    <div id="errors"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            document.getElementById('errors').innerHTML += `
+                <div class="error">
+                    <h3>JavaScript Error Detected!</h3>
+                    <p><strong>Message:</strong> ${msg}</p>
+                    <p><strong>Line:</strong> ${lineNo}, Column: ${columnNo}</p>
+                    <p><strong>Error:</strong> ${error}</p>
+                </div>
+            `;
+            return false;
+        };
+
+        try {
+            function ChiroDebug() {
+                const [status, setStatus] = useState('Initializing...');
+
+                React.useEffect(() => {
+                    setStatus('✅ React is working!');
+                }, []);
+
+                return (
+                    <div className="success">
+                        <h2>Status: {status}</h2>
+                        <p>If you see this, React is loaded correctly.</p>
+                        <p>Password: ChiroTrain2025</p>
+                        <p>The main app should work.</p>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<ChiroDebug />, document.getElementById('root'));
+        } catch (error) {
+            document.getElementById('errors').innerHTML = `
+                <div class="error">
+                    <h3>React Rendering Error!</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack}</pre>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
