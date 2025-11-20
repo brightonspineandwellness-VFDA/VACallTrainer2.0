@@ -325,10 +325,18 @@
         const STORED_API_KEY = localStorage.getItem('openai_api_key');
         const OPENAI_API_KEY = STORED_API_KEY || "";
 
+        // Password protection - CHANGE THIS PASSWORD!
+        const APP_PASSWORD = "ChiroTrain2025"; // ← CHANGE THIS to your own password!
+        
         function ChiroVoiceTrainer() {
             // API key management
             const [apiKey, setApiKey] = useState(OPENAI_API_KEY);
             const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(!STORED_API_KEY);
+            const [isAuthenticated, setIsAuthenticated] = useState(
+                sessionStorage.getItem('app_authenticated') === 'true'
+            );
+            const [passwordAttempt, setPasswordAttempt] = useState('');
+            const [passwordError, setPasswordError] = useState('');
             const [gameState, setGameState] = useState('setup'); // setup, playing, scoring
             const [difficulty, setDifficulty] = useState('');
             const [messages, setMessages] = useState([]);
@@ -337,6 +345,7 @@
             const [conversationHistory, setConversationHistory] = useState([]);
             const [scoreData, setScoreData] = useState(null);
             const [interimTranscript, setInterimTranscript] = useState('');
+            const [debugLogs, setDebugLogs] = useState([]);
             
             const chatEndRef = useRef(null);
             const recognitionRef = useRef(null);
@@ -364,6 +373,23 @@
                 localStorage.removeItem('openai_api_key');
                 setApiKey('');
                 setShowApiKeyPrompt(true);
+            };
+
+            const addDebug = (message) => {
+                const timestamp = new Date().toLocaleTimeString();
+                setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+                console.log(`[DEBUG] ${message}`);
+            };
+
+            const checkPassword = () => {
+                if (passwordAttempt === APP_PASSWORD) {
+                    sessionStorage.setItem('app_authenticated', 'true');
+                    setIsAuthenticated(true);
+                    setPasswordError('');
+                } else {
+                    setPasswordError('Incorrect password. Please try again.');
+                    setPasswordAttempt('');
+                }
             };
 
             // Initialize speech recognition
@@ -438,22 +464,32 @@
             }, []);
 
             const difficultyPrompts = {
-                easy: `You are a patient calling a chiropractic office because you have back pain and want to schedule an appointment. 
+            const difficultyPrompts = {
+                easy: `You are a simple, cooperative patient calling a chiropractic office. You have back pain and want to book an appointment.
 
-YOUR FIRST MESSAGE must be a simple booking request like: "Hi, I'd like to schedule an appointment" or "I'm calling to book an appointment for back pain."
+CRITICAL RULES:
+1. Your FIRST message MUST be: "Hi, I'd like to schedule an appointment" OR "I'm calling to book an appointment for back pain"
+2. DO NOT ask about services, treatments, what to expect, or any questions
+3. ONLY answer when staff asks you questions
+4. Keep ALL responses to ONE short sentence (maximum 10 words)
 
-After staff responds, you cooperate with their questions. Answer when they ask about:
-- Your availability (say morning or afternoon, this week or next)
-- Your name (give a simple name)
-- Your phone number (give a fake number like 555-1234)
-- Your email (give fake like john@email.com)
-- Health concerns (say back pain or neck pain)
+When staff asks questions, answer briefly:
+- When can you come? "This week works, mornings are better"
+- Your name? Give a simple name like "John Smith" or "Maria Garcia"
+- Phone number? "555-1234"
+- Email? "john@email.com"  
+- How you heard about us? "A friend referred me" OR "I found you on Google"
+- Health concern? "Back pain" or "Neck pain"
 
-DO NOT ask questions unless the staff forgets something critical like the cost or what to bring. If staff explains everything clearly, just agree and book.
+When staff mentions the cost and confirms your appointment, say ONE of these:
+- "Sounds good, thank you!"
+- "Perfect, see you then!"
+- "Great, thanks!"
 
-Keep EVERY response 1-2 sentences. Be friendly and cooperative.
+Then STOP talking. Do not say anything else. The conversation is over.
 
-When appointment is confirmed, say something like "Great, thank you! See you then" and end the call.`,
+BE COOPERATIVE. BE BRIEF. DO NOT ASK QUESTIONS.
+MAXIMUM 10 WORDS PER RESPONSE.`,
                 
                 challenging: `You are a price-conscious patient calling a chiropractic office. You want to schedule but need to understand costs first.
 
@@ -691,18 +727,57 @@ After requesting to schedule, respond naturally to their questions. Keep EVERY r
                         { role: 'assistant', content: patientResponse }
                     ]);
 
-                    await playAudioFromText(patientResponse);
-
+                    // Check if call is ending naturally
                     const lowerResponse = patientResponse.toLowerCase();
-                    if ((lowerResponse.includes('see you then') || lowerResponse.includes('thank you')) && 
-                        (lowerResponse.includes('appointment') || transcript.toLowerCase().includes('scheduled'))) {
+                    const lowerStaffMessage = staffMessage.toLowerCase();
+                    
+                    // More robust call ending detection
+                    const endPhrases = [
+                        'see you then',
+                        'see you tomorrow',
+                        'talk to you later',
+                        'thank you',
+                        'thanks',
+                        'sounds good',
+                        'perfect',
+                        'great',
+                        'bye',
+                        'goodbye'
+                    ];
+                    
+                    const hasEndPhrase = endPhrases.some(phrase => lowerResponse.includes(phrase));
+                    const appointmentConfirmed = 
+                        lowerStaffMessage.includes('scheduled') ||
+                        lowerStaffMessage.includes('see you') ||
+                        lowerStaffMessage.includes('appointment') ||
+                        lowerResponse.includes('appointment');
+                    
+                    // Check if this is a natural ending (short response + end phrase + appointment discussed)
+                    const isShortResponse = patientResponse.split(' ').length <= 8;
+                    const isNaturalEnd = hasEndPhrase && appointmentConfirmed && isShortResponse;
+                    
+                    if (isNaturalEnd) {
+                        // Call is naturally ending - stop listening
+                        shouldListenRef.current = false;
+                        if (recognitionRef.current) {
+                            try {
+                                recognitionRef.current.stop();
+                            } catch (e) {}
+                        }
+                        
                         setTimeout(() => {
                             setMessages(prev => [...prev, { 
                                 type: 'system', 
-                                text: '✅ Patient has agreed to appointment!' 
+                                text: '✅ Call completed successfully! Patient has agreed to appointment. Click "End Call & Get Score" to see your results.' 
                             }]);
+                            setCurrentStatus('idle');
+                            setStatusText('Call ended - Ready to score');
                         }, 1000);
+                        
+                        return; // Don't play audio or continue
                     }
+
+                    await playAudioFromText(patientResponse);
                 } catch (error) {
                     console.error('Full error:', error);
                     setMessages(prev => [...prev, { 
@@ -797,151 +872,255 @@ Provide your evaluation in this EXACT JSON format (no other text):
                             lowerConvo.includes('how you find') ||
                             (lowerConvo.includes('staff') && (lowerConvo.includes('referred by') || lowerConvo.includes('friend referred') || lowerConvo.includes('google') || lowerConvo.includes('facebook')));
                         
-                        const scoringPrompt = `You are evaluating a chiropractic office staff member based on the Next Medical Florida phone script. Analyze this conversation and check if they completed each required step.
+                        const scoringPrompt = `You are a STRICT evaluator. You must analyze this SPECIFIC conversation and give ACCURATE scores.
 
-CONVERSATION:
+CONVERSATION TO ANALYZE:
 ${conversationText}
 
-${hasReferralQuestion ? 'CONFIRMED: Staff asked about referral source (detected in conversation).' : ''}
+CRITICAL: Do NOT give generic or example scores. Analyze what ACTUALLY happened above.
 
-CRITICAL INSTRUCTION FOR REFERRAL DETECTION:
-${hasReferralQuestion ? 'The referral question WAS asked - mark it as completed with 5/5 points.' : 'Check very carefully if staff asked how patient heard about them.'}
-If the patient mentions being "referred by a friend" or "found you on Google" or any source, that means the STAFF MEMBER asked about it.
+Check each step carefully. If a step was NOT done, give it 0 points. Be STRICT.
 
-IMPORTANT: Analyze the ENTIRE conversation carefully. Look at what the STAFF member (not patient) said and did.
+SCORING CHECKLIST:
 
-EXAMPLE of what counts:
-- STAFF: "How did you hear about us?" PATIENT: "A friend referred me" = COUNTS as completed referral question
-- STAFF: "Who told you about us?" = COUNTS 
-- STAFF: "Where did you find us?" = COUNTS
-- If STAFF asks about referral in ANY way and patient responds, mark it completed.
+1. GREETING (0-10 pts): Did staff say their NAME + OFFICE NAME + offer help?
+   - Look for: "This is [name] from [office]" or similar
+   - Give 10 if complete, 5 if partial, 0 if missing
 
-CRITICAL STEPS (70 points total) - Check for CONCEPT, not exact words:
+2. SCHEDULING (0-15 pts): Did staff ask WHEN + narrow down time preferences?
+   - Look for: "When can you come in? Morning or afternoon?"
+   - Give 15 if both, 10 if only asked when, 0 if didn't ask
 
-1. PROFESSIONAL GREETING (10 pts)
-   - Did they introduce themselves by name?
-   - Did they mention their office/clinic name (any name, not specific to Next Medical)?
-   - Did they ask how to help?
-   Give 10 if all present, 5 if partial, 0 if missing.
+3. PATIENT NAME (0-10 pts): Did staff ask for name?
+   - Look for: "What's your name?" or "May I have your name?"
+   - Give 10 if asked, 0 if not
 
-2. SCHEDULING QUESTIONS (15 pts)
-   - Did they ask WHEN patient wants to come in?
-   - Did they narrow down preferences (morning/afternoon, early/late week, or give options)?
-   Give 15 if both present, 10 if asked when but didn't narrow down, 0 if didn't ask about timing.
+4. REFERRAL SOURCE (0-5 pts): Did staff ask how they found the office?
+   - Look for: "How did you hear about us?" "Who referred you?" "How did you find us?"
+   - If PATIENT mentions "friend" or "Google", that means staff ASKED (not shown in conversation)
+   - Give 5 if ANY evidence they asked, 0 if clearly never discussed
 
-3. GET PATIENT NAME (10 pts)
-   - Did they ask for the patient's name in ANY way?
-   Give 10 if yes, 0 if no.
+5. PHONE NUMBER (0-5 pts): Did staff ask for phone/contact number?
+   - Look for: "Phone number?" "Best number to reach you?"
+   - Give 5 if asked, 0 if not
 
-4. HOW THEY HEARD ABOUT US (5 pts)
-   - CRITICAL: Look through the ENTIRE conversation for the STAFF asking about referrals
-   - Search for these phrases from STAFF: "hear about", "referred", "find us", "find out", "told you", "recommend"
-   - If the STAFF member asks ANY question containing these words, mark as COMPLETED
-   - If you see patient mention "friend referred" or "google" or any source, the staff MUST have asked
-   - DEFAULT TO YES if there is any discussion of how patient found the office
-   Give 5 points if there is ANY evidence staff asked about referral source, 0 only if clearly never discussed.
+6. FEE EXPLANATION (0-20 pts): Did staff mention COST + WHAT TO BRING?
+   - Must mention: dollar amount AND (ID/insurance OR what's included)
+   - Give 20 if both, 15 if only cost, 0 if never mentioned
 
-5. GET PHONE NUMBER (5 pts)
-   - Did they ask for contact/phone number?
-   Give 5 if yes, 0 if no.
+7. EMAIL (0-5 pts): Did staff ask for email?
+   - Look for: "Email address?" "Where can I send paperwork?"
+   - Give 5 if asked, 0 if not
 
-6. EXPLAIN FIRST VISIT FEE AND WHAT'S INCLUDED (20 pts) - MOST IMPORTANT
-   - Did they mention the dollar amount or cost for first visit (any amount)?
-   - Did they explain what's included, what to bring, or what to expect (like ID, insurance, exam details)?
-   Give 20 if mentioned cost AND what's included/to bring, 15 if only mentioned cost, 10 if vague about fees, 0 if never mentioned.
+BONUS (30 pts total):
+- Health concerns asked: 0-5
+- Family question: 0-5  
+- Objection handling: 0-10
+- Confirmed appointment: 0-5
+- Professional tone: 0-5
 
-7. GET EMAIL ADDRESS (5 pts)
-   - Did they ask for email to send paperwork?
-   Give 5 if yes, 0 if no.
+IMPORTANT: Your scores MUST reflect what actually happened. Do NOT give example scores.
 
-BONUS POINTS (30 points total):
-
-8. HEALTH CONCERNS (5 pts) - Did they ask about patient's health issue or reason for visit?
-
-9. FAMILY UPSELL (5 pts) - Did they ask if appointment is just for patient or family?
-
-10. OBJECTION HANDLING (10 pts) - If patient asked about cost/insurance, how well did they handle it using proper responses?
-
-11. FINAL CONFIRMATION (5 pts) - Did they confirm the appointment details (date/time)?
-
-12. PROFESSIONALISM/ENTHUSIASM (5 pts) - Overall tone, confidence, friendliness?
-
-Respond with ONLY this JSON format (use simple words, no special characters):
+Return ONLY valid JSON (no markdown, no extra text):
 
 {
   "critical_steps": {
-    "greeting": {"score": 10, "completed": true, "feedback": "Introduced self as Maria from Next Medical"},
-    "scheduling": {"score": 15, "completed": true, "feedback": "Asked when they want to come in and gave time options"},
-    "name": {"score": 10, "completed": true, "feedback": "Asked for patient name"},
-    "referral": {"score": 0, "completed": false, "feedback": "Did not ask how they heard about office"},
-    "phone": {"score": 5, "completed": true, "feedback": "Got phone number"},
-    "fee_explanation": {"score": 20, "completed": true, "feedback": "Explained 59 dollar fee and what to bring"},
-    "email": {"score": 5, "completed": true, "feedback": "Asked for email address"}
+    "greeting": {"score": <ACTUAL SCORE 0-10>, "completed": <true/false>, "feedback": "<what they actually said or 'Not completed'>"},
+    "scheduling": {"score": <ACTUAL SCORE 0-15>, "completed": <true/false>, "feedback": "<actual quote or 'Not completed'>"},
+    "name": {"score": <ACTUAL SCORE 0 or 10>, "completed": <true/false>, "feedback": "<actual or 'Not completed'>"},
+    "referral": {"score": <ACTUAL SCORE 0 or 5>, "completed": <true/false>, "feedback": "<actual or 'Not completed'>"},
+    "phone": {"score": <ACTUAL SCORE 0 or 5>, "completed": <true/false>, "feedback": "<actual or 'Not completed'>"},
+    "fee_explanation": {"score": <ACTUAL SCORE 0-20>, "completed": <true/false>, "feedback": "<actual or 'Not completed'>"},
+    "email": {"score": <ACTUAL SCORE 0 or 5>, "completed": <true/false>, "feedback": "<actual or 'Not completed'>"}
   },
   "bonus_steps": {
-    "health_concerns": {"score": 5, "completed": true},
-    "family_upsell": {"score": 0, "completed": false},
-    "objection_handling": {"score": 8, "completed": true},
-    "confirmation": {"score": 5, "completed": true},
-    "professionalism": {"score": 4, "completed": true}
+    "health_concerns": {"score": <0-5>, "completed": <true/false>},
+    "family_upsell": {"score": <0-5>, "completed": <true/false>},
+    "objection_handling": {"score": <0-10>, "completed": <true/false>},
+    "confirmation": {"score": <0-5>, "completed": <true/false>},
+    "professionalism": {"score": <0-5>, "completed": <true/false>}
   },
-  "critical_total": 65,
-  "bonus_total": 22,
-  "total_score": 87,
-  "passed": true,
-  "summary": "Strong call with most critical steps completed. Should remember to ask referral source."
+  "critical_total": <SUM OF CRITICAL SCORES>,
+  "bonus_total": <SUM OF BONUS SCORES>,
+  "total_score": <CRITICAL + BONUS>,
+  "passed": <true if critical_total >= 56, false otherwise>,
+  "summary": "<1 sentence about actual performance>"
 }`;
 
-                        const scoreResponse = await callOpenAI([{
-                            role: 'user',
-                            content: scoringPrompt
-                        }]);
-
-                        let scoreJson;
-                        try {
-                            let cleanedResponse = scoreResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                            
-                            // Extract just the JSON object
-                            const firstBrace = cleanedResponse.indexOf('{');
-                            const lastBrace = cleanedResponse.lastIndexOf('}');
-                            if (firstBrace !== -1 && lastBrace !== -1) {
-                                cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
-                            }
-                            
-                            // Remove control characters
-                            cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-                            
-                            scoreJson = JSON.parse(cleanedResponse);
-                        } catch (e) {
-                            console.error('JSON parse error:', e);
-                            console.error('Response was:', scoreResponse);
-                            
-                            // Fallback with new structure
-                            scoreJson = {
-                                critical_steps: {
-                                    greeting: {score: 8, completed: true, feedback: "Greeted professionally"},
-                                    scheduling: {score: 12, completed: true, feedback: "Asked about timing"},
-                                    name: {score: 10, completed: true, feedback: "Got patient name"},
-                                    referral: {score: 0, completed: false, feedback: "Did not ask referral source"},
-                                    phone: {score: 5, completed: true, feedback: "Got phone number"},
-                                    fee_explanation: {score: 15, completed: true, feedback: "Mentioned fees"},
-                                    email: {score: 5, completed: true, feedback: "Got email"}
-                                },
-                                bonus_steps: {
-                                    health_concerns: {score: 5, completed: true},
-                                    family_upsell: {score: 0, completed: false},
-                                    objection_handling: {score: 8, completed: true},
-                                    confirmation: {score: 4, completed: true},
-                                    professionalism: {score: 4, completed: true}
-                                },
-                                critical_total: 55,
-                                bonus_total: 21,
-                                total_score: 76,
-                                passed: false,
-                                summary: "System had trouble analyzing but call was recorded."
-                            };
-                        }
+                        // NEW APPROACH: Ask AI to analyze each step individually for better accuracy
+                        const stepChecks = [];
                         
+                        // Check each critical step one by one
+                        const steps = [
+                            {
+                                name: "greeting",
+                                question: "In this conversation, did the STAFF member introduce themselves by name AND mention their office/clinic name? Answer with just YES or NO, then explain what they said.",
+                                maxScore: 10
+                            },
+                            {
+                                name: "scheduling",
+                                question: "Did the STAFF ask WHEN the patient wants to come in AND narrow down time preferences (morning/afternoon, early/late week)? Answer YES or NO, then explain.",
+                                maxScore: 15
+                            },
+                            {
+                                name: "name",
+                                question: "Did the STAFF ask for the patient's name? Answer YES or NO, then quote what they said.",
+                                maxScore: 10
+                            },
+                            {
+                                name: "referral", 
+                                question: "Did the STAFF ask how the patient heard about them (referral question)? This is CRITICAL to check carefully. Look for ANY of these from staff: 'how did you hear about us', 'who referred you', 'how did you find us', 'where did you hear about us', 'who told you about us', 'how you hear about', 'who recommended'. IMPORTANT: If the patient mentions 'a friend', 'Google', 'Facebook', 'referred by', or any source, that means the staff MUST have asked (even if not shown). Answer YES if there is ANY evidence staff asked, NO only if clearly never discussed.",
+                                maxScore: 5
+                            },
+                            {
+                                name: "phone",
+                                question: "Did the STAFF ask for a phone number or contact number? Answer YES or NO.",
+                                maxScore: 5
+                            },
+                            {
+                                name: "fee",
+                                question: "Did the STAFF mention the cost/fee for first visit AND mention what to bring (like ID, insurance) or what's included? Answer YES (both), PARTIAL (only cost), or NO.",
+                                maxScore: 20
+                            },
+                            {
+                                name: "email",
+                                question: "Did the STAFF ask for an email address? Answer YES or NO.",
+                                maxScore: 5
+                            }
+                        ];
+
+                        // Analyze each step
+                        let criticalTotal = 0;
+                        const criticalResults = {};
+
+                        addDebug("Starting step-by-step scoring analysis...");
+
+                        for (const step of steps) {
+                            try {
+                                const checkPrompt = `Analyze this conversation:
+
+${conversationText}
+
+Question: ${step.question}
+
+Respond in this EXACT format:
+ANSWER: [YES/NO/PARTIAL]
+EVIDENCE: [Quote from conversation or "Not found"]
+SCORE: [Number 0-${step.maxScore}]`;
+
+                                const checkResponse = await callOpenAI([{
+                                    role: 'user',
+                                    content: checkPrompt
+                                }]);
+
+                                addDebug(`${step.name}: ${checkResponse.substring(0, 100)}...`);
+
+                                // Parse the response
+                                const answerMatch = checkResponse.match(/ANSWER:\s*(YES|NO|PARTIAL)/i);
+                                const evidenceMatch = checkResponse.match(/EVIDENCE:\s*(.+?)(?=SCORE:|$)/is);
+                                const scoreMatch = checkResponse.match(/SCORE:\s*(\d+)/i);
+
+                                const answer = answerMatch ? answerMatch[1].toUpperCase() : 'NO';
+                                let evidence = evidenceMatch ? evidenceMatch[1].trim() : 'Not found';
+                                
+                                // Clean up evidence
+                                evidence = evidence.replace(/\n/g, ' ').substring(0, 150);
+                                if (evidence === 'Not found' || evidence.toLowerCase().includes('not found')) {
+                                    evidence = answer === 'YES' ? 'Completed this step' : 'Did not complete this step';
+                                }
+
+                                const scoreFromAI = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+
+                                const completed = answer === 'YES' || (answer === 'PARTIAL' && step.name === 'fee');
+                                const actualScore = answer === 'YES' ? step.maxScore : 
+                                                  (answer === 'PARTIAL' && step.name === 'fee' ? 15 : 0);
+
+                                criticalResults[step.name] = {
+                                    score: actualScore,
+                                    completed: completed,
+                                    feedback: evidence
+                                };
+
+                                criticalTotal += actualScore;
+
+                            } catch (err) {
+                                addDebug(`Error checking ${step.name}: ${err.message}`);
+                                criticalResults[step.name] = {
+                                    score: 0,
+                                    completed: false,
+                                    feedback: "Could not analyze this step"
+                                };
+                            }
+                        }
+
+                        addDebug(`Critical total calculated: ${criticalTotal}/70`);
+
+                        // Bonus scoring - also check each individually
+                        let bonusTotal = 0;
+                        const bonusResults = {
+                            health_concerns: {score: 0, completed: false},
+                            family_upsell: {score: 0, completed: false},
+                            objection_handling: {score: 0, completed: false},
+                            confirmation: {score: 0, completed: false},
+                            professionalism: {score: 0, completed: false}
+                        };
+
+                        // Check if health concerns were discussed
+                        if (conversationText.toLowerCase().includes('pain') || 
+                            conversationText.toLowerCase().includes('health') ||
+                            conversationText.toLowerCase().includes('concern')) {
+                            bonusResults.health_concerns = {score: 5, completed: true};
+                            bonusTotal += 5;
+                        }
+
+                        // Check if appointment was confirmed
+                        const lowerConvo = conversationText.toLowerCase();
+                        if ((lowerConvo.includes('scheduled') || lowerConvo.includes('see you')) &&
+                            (lowerConvo.includes('tomorrow') || lowerConvo.includes('monday') || 
+                             lowerConvo.includes('tuesday') || lowerConvo.includes('am') || 
+                             lowerConvo.includes('pm') || /\d+:\d+/.test(conversationText))) {
+                            bonusResults.confirmation = {score: 5, completed: true};
+                            bonusTotal += 5;
+                        }
+
+                        // Check objection handling (if patient asked about cost/insurance)
+                        if (lowerConvo.includes('how much') || lowerConvo.includes('cost') || 
+                            lowerConvo.includes('insurance') || lowerConvo.includes('price')) {
+                            // If staff responded to the question, give points
+                            if (lowerConvo.includes('59') || lowerConvo.includes('dollar') || 
+                                lowerConvo.includes('fee') || lowerConvo.includes('consultation')) {
+                                bonusResults.objection_handling = {score: 8, completed: true};
+                                bonusTotal += 8;
+                            }
+                        }
+
+                        // Professionalism - default to 3 points if call completed
+                        bonusResults.professionalism = {score: 3, completed: true};
+                        bonusTotal += 3;
+
+                        addDebug(`Bonus total calculated: ${bonusTotal}/30`);
+
+                        const scoreJson = {
+                            critical_steps: {
+                                greeting: criticalResults.greeting || {score: 0, completed: false, feedback: "Not checked"},
+                                scheduling: criticalResults.scheduling || {score: 0, completed: false, feedback: "Not checked"},
+                                name: criticalResults.name || {score: 0, completed: false, feedback: "Not checked"},
+                                referral: criticalResults.referral || {score: 0, completed: false, feedback: "Not checked"},
+                                phone: criticalResults.phone || {score: 0, completed: false, feedback: "Not checked"},
+                                fee_explanation: criticalResults.fee || {score: 0, completed: false, feedback: "Not checked"},
+                                email: criticalResults.email || {score: 0, completed: false, feedback: "Not checked"}
+                            },
+                            bonus_steps: bonusResults,
+                            critical_total: criticalTotal,
+                            bonus_total: bonusTotal,
+                            total_score: criticalTotal + bonusTotal,
+                            passed: criticalTotal >= 56,
+                            summary: criticalTotal >= 56 ? 
+                                `Strong performance! Completed ${Object.values(criticalResults).filter(r => r.completed).length}/7 critical steps.` : 
+                                `Needs improvement. Only completed ${Object.values(criticalResults).filter(r => r.completed).length}/7 critical steps - need all 7 to pass.`
+                        };
+                        
+                        addDebug(`Final score: ${scoreJson.total_score}/100`);
                         setScoreData(scoreJson);
                         setGameState('scoring');
                     }
@@ -978,6 +1157,62 @@ Respond with ONLY this JSON format (use simple words, no special characters):
                 setStatusText('');
                 setInterimTranscript('');
             };
+
+            // Password protection screen - shows first before anything else
+            if (!isAuthenticated) {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>🔐 Chiro Voice Training</h1>
+                            <p>Authorized Access Only</p>
+                        </div>
+                        <div className="content">
+                            <div style={{textAlign: 'center', padding: '60px 20px'}}>
+                                <h2 style={{marginBottom: '20px', color: '#333'}}>Welcome</h2>
+                                <p style={{marginBottom: '30px', fontSize: '16px', color: '#666'}}>
+                                    Please enter your access password to continue.
+                                </p>
+                                <div style={{maxWidth: '400px', margin: '0 auto'}}>
+                                    <input 
+                                        type="password"
+                                        placeholder="Enter password"
+                                        value={passwordAttempt}
+                                        onChange={(e) => setPasswordAttempt(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                checkPassword();
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '15px',
+                                            fontSize: '16px',
+                                            border: passwordError ? '2px solid #f44336' : '2px solid #667eea',
+                                            borderRadius: '10px',
+                                            marginBottom: '15px'
+                                        }}
+                                        autoFocus
+                                    />
+                                    {passwordError && (
+                                        <p style={{color: '#f44336', marginBottom: '15px', fontSize: '14px'}}>
+                                            {passwordError}
+                                        </p>
+                                    )}
+                                    <button 
+                                        className="start-btn"
+                                        onClick={checkPassword}
+                                    >
+                                        Access App
+                                    </button>
+                                    <p style={{marginTop: '30px', fontSize: '14px', color: '#999'}}>
+                                        Don't have access? Contact the administrator.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
 
             if (showApiKeyPrompt) {
                 return (
@@ -1335,6 +1570,35 @@ Respond with ONLY this JSON format (use simple words, no special characters):
                                     <h3>📝 Summary:</h3>
                                     <p style={{fontSize: '16px'}}>{scoreData.summary}</p>
                                 </div>
+
+                                {!scoreData.passed && (
+                                    <div style={{marginTop: '20px', padding: '20px', background: '#fff3cd', borderRadius: '10px', border: '2px solid #ffc107'}}>
+                                        <h3 style={{color: '#856404', marginBottom: '10px'}}>💡 Tips to Pass:</h3>
+                                        <ul style={{marginLeft: '20px', color: '#856404'}}>
+                                            {!scoreData.critical_steps.greeting.completed && (
+                                                <li>Start with: "Hi, this is [YOUR NAME] from [OFFICE NAME], how can I help?"</li>
+                                            )}
+                                            {!scoreData.critical_steps.referral.completed && (
+                                                <li>Always ask: "How did you hear about us?" or "Who referred you?"</li>
+                                            )}
+                                            {!scoreData.critical_steps.fee_explanation.completed && (
+                                                <li>Must mention: "First visit is $[AMOUNT], please bring ID and insurance"</li>
+                                            )}
+                                            {!scoreData.critical_steps.email.completed && (
+                                                <li>Don't forget to ask: "May I have your email to send paperwork?"</li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {debugLogs.length > 0 && (
+                                    <div style={{marginTop: '30px', background: '#1e1e1e', color: '#00ff00', padding: '15px', borderRadius: '10px', maxHeight: '200px', overflowY: 'auto', fontSize: '12px', fontFamily: 'monospace'}}>
+                                        <h3 style={{color: '#00ff00', marginBottom: '10px'}}>🔍 Debug Log:</h3>
+                                        {debugLogs.map((log, idx) => (
+                                            <div key={idx}>{log}</div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             
                             <button 
