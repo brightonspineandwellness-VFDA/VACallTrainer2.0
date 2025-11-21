@@ -224,56 +224,62 @@
                 setShowApiPrompt(false);
             };
 
-            // Get patient persona based on difficulty
-            const getPatientPersona = () => {
-                switch(difficulty) {
-                    case 'easy':
-                        return {
-                            name: 'Sarah Johnson',
-                            phone: '555-867-5309',
-                            email: 'sarah.johnson@email.com',
-                            problem: 'back pain for about 2 weeks',
-                            availability: 'this week, mornings are best',
-                            referral: 'a friend recommended you',
-                            personality: 'friendly and cooperative'
-                        };
-                    case 'challenging':
-                        return {
-                            name: 'Mike Davis',
-                            phone: '555-234-5678',
-                            email: 'mike.davis@email.com',
-                            problem: 'neck pain and stiffness',
-                            availability: 'flexible, any day works',
-                            referral: 'found you on Google',
-                            personality: 'price-conscious, asks about cost and insurance',
-                            insurance: 'Blue Cross Blue Shield'
-                        };
-                    case 'difficult':
-                        return {
-                            name: 'Karen Miller',
-                            phone: '555-345-6789',
-                            email: 'karen.m@email.com',
-                            problem: 'chronic lower back pain',
-                            availability: 'afternoons only',
-                            referral: 'insurance website',
-                            personality: 'skeptical, been overcharged before, wants specifics',
-                            insurance: 'Aetna'
-                        };
-                    case 'creepy':
-                        return {
-                            name: 'unknown',
-                            problem: 'vague tension',
-                            personality: 'starts normal then becomes inappropriate'
-                        };
-                    default:
-                        return {};
+            // Patient personas - defined as constants
+            const PATIENT_PERSONAS = {
+                easy: {
+                    name: 'Sarah Johnson',
+                    phone: '555-867-5309',
+                    email: 'sarah.johnson@email.com',
+                    problem: 'back pain for about 2 weeks',
+                    availability: 'this week, mornings are best',
+                    referral: 'a friend recommended you',
+                    personality: 'friendly and cooperative'
+                },
+                challenging: {
+                    name: 'Mike Davis',
+                    phone: '555-234-5678',
+                    email: 'mike.davis@email.com',
+                    problem: 'neck pain and stiffness',
+                    availability: 'flexible, any day works',
+                    referral: 'found you on Google',
+                    personality: 'price-conscious, asks about cost and insurance',
+                    insurance: 'Blue Cross Blue Shield'
+                },
+                difficult: {
+                    name: 'Karen Miller',
+                    phone: '555-345-6789',
+                    email: 'karen.m@email.com',
+                    problem: 'chronic lower back pain',
+                    availability: 'afternoons only',
+                    referral: 'found you on my insurance website',
+                    personality: 'skeptical, been overcharged before, wants specifics',
+                    insurance: 'Aetna'
+                },
+                creepy: {
+                    name: 'John',
+                    phone: '555-000-0000',
+                    email: 'rather not say',
+                    problem: 'some tension',
+                    availability: 'anytime',
+                    referral: 'just found you online',
+                    personality: 'starts normal then becomes inappropriate'
                 }
+            };
+
+            // Get patient persona based on difficulty
+            const getPatientPersona = (diff) => {
+                const d = diff || difficulty;
+                console.log('Getting persona for difficulty:', d);
+                return PATIENT_PERSONAS[d] || PATIENT_PERSONAS.easy;
             };
 
             // Simple, clear prompt for patient responses
             const buildSimplePrompt = () => {
-                const persona = getPatientPersona();
+                const persona = getPatientPersona(difficulty);
                 const conversation = conversationRef.current;
+                
+                console.log('Building prompt with persona:', persona);
+                console.log('Difficulty:', difficulty);
                 
                 // Build conversation string
                 let convoText = '';
