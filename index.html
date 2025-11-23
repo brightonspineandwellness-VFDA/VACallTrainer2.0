@@ -178,6 +178,87 @@
             }
         };
 
+        // Expanded question pool for challenging mode
+        const CHALLENGING_QUESTIONS = [
+            {
+                id: 'cost',
+                question: 'How much does the first visit cost?',
+                checkAnswer: (vaText) => vaText.includes('$') || vaText.includes('dollar') || vaText.includes('49') || vaText.includes('59') || vaText.match(/\d+/) || vaText.includes('varies') || vaText.includes('discuss')
+            },
+            {
+                id: 'insurance',
+                question: 'Do you accept Blue Cross Blue Shield insurance?',
+                checkAnswer: (vaText) => vaText.includes('insurance') || vaText.includes('blue cross') || vaText.includes('programs') || vaText.includes('work with') || vaText.includes('bring your card') || vaText.includes('verify')
+            },
+            {
+                id: 'duration',
+                question: 'How long does the appointment usually take?',
+                checkAnswer: (vaText) => vaText.includes('30') || vaText.includes('45') || vaText.includes('minute') || vaText.includes('hour')
+            },
+            {
+                id: 'bring',
+                question: 'What do I need to bring?',
+                checkAnswer: (vaText) => vaText.includes('bring') || vaText.includes('insurance card') || vaText.includes('x-ray') || vaText.includes('mri') || vaText.includes('id')
+            },
+            {
+                id: 'includes',
+                question: 'What does the first visit include?',
+                checkAnswer: (vaText) => vaText.includes('consultation') || vaText.includes('exam') || vaText.includes('adjustment') || vaText.includes('include')
+            },
+            {
+                id: 'thisweek',
+                question: 'Can I get an appointment this week?',
+                checkAnswer: (vaText) => vaText.includes('week') || vaText.includes('monday') || vaText.includes('tuesday') || vaText.includes('available') || vaText.includes('schedule')
+            },
+            {
+                id: 'decompression',
+                question: 'Do you do decompression therapy for neck pain?',
+                checkAnswer: (vaText) => vaText.includes('decompression') || vaText.includes('therapy') || vaText.includes('doctor') || vaText.includes('appointment') || vaText.includes('discuss')
+            },
+            {
+                id: 'laser',
+                question: 'Do you do laser therapy?',
+                checkAnswer: (vaText) => vaText.includes('laser') || vaText.includes('therapy') || vaText.includes('doctor') || vaText.includes('appointment') || vaText.includes('discuss')
+            }
+        ];
+
+        // Helper function to select random questions for challenging mode
+        function selectRandomQuestions() {
+            const numQuestions = Math.random() < 0.5 ? 2 : 3; // Random 2 or 3
+            const shuffled = [...CHALLENGING_QUESTIONS].sort(() => Math.random() - 0.5);
+            return shuffled.slice(0, numQuestions);
+        }
+
+        // Helper function to check if VA response indicates call ending
+        function isGoodbyePhrase(text) {
+            const lower = text.toLowerCase();
+            const goodbyePhrases = [
+                'goodbye',
+                'bye bye',
+                'see you',
+                'have a great day',
+                'have a nice day',
+                'talk to you later',
+                'thank you, bye'
+            ];
+            
+            return goodbyePhrases.some(phrase => lower.includes(phrase));
+        }
+
+        // Helper function to generate patient goodbye response
+        function getPatientGoodbye() {
+            const goodbyes = [
+                'Goodbye!',
+                'Thank you!',
+                'Thank you, goodbye!',
+                'Perfect, thank you, bye!',
+                'Great, thank you, bye!',
+                'Sounds good, goodbye!'
+            ];
+            
+            return goodbyes[Math.floor(Math.random() * goodbyes.length)];
+        }
+
         function ChiroVoiceTrainer() {
             const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('auth') === 'true');
             const [passwordInput, setPasswordInput] = useState('');
@@ -205,6 +286,7 @@
             const officeNameRef = useRef('');
             const doctorNameRef = useRef('');
             const firstVisitCostRef = useRef('');
+            const selectedQuestionsRef = useRef([]);
             
             const recognitionRef = useRef(null);
             const shouldListenRef = useRef(false);
@@ -212,6 +294,7 @@
             const silenceTimerRef = useRef(null);
             const lastTranscriptRef = useRef('');
             const audioRef = useRef(null);
+            const callEndingRef = useRef(false);
 
             // Keep refs in sync with state
             useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
@@ -252,6 +335,23 @@
                 const patientTurns = conversation.filter(m => m.speaker === 'PATIENT').length;
                 const isFirstResponse = patientTurns === 0;
 
+                // Check if VA just said goodbye
+                const lastVAMessage = conversation.length > 0 && conversation[conversation.length - 1].speaker === 'VA' 
+                    ? conversation[conversation.length - 1].text 
+                    : '';
+                
+                if (isGoodbyePhrase(lastVAMessage)) {
+                    return `You are ending a phone call. The receptionist just said goodbye to you.
+
+Respond with ONLY one of these goodbye phrases:
+- "Goodbye!"
+- "Thank you!"
+- "Thank you, goodbye!"
+- "Perfect, thank you, bye!"
+
+Pick one randomly. Say nothing else. No additional text.`;
+                }
+
                 // ==================== EASY MODE ====================
                 if (diff === 'easy') {
                     if (isFirstResponse) {
@@ -291,12 +391,16 @@ Give a short 1-2 sentence response. Do not add labels or quotes.`;
 
                 // ==================== CHALLENGING MODE ====================
                 if (diff === 'challenging') {
+                    const selectedQuestions = selectedQuestionsRef.current;
+                    
                     if (isFirstResponse) {
+                        // First question is now random from the selected questions
+                        const firstQuestion = selectedQuestions[0];
                         return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
 
-The receptionist just answered. You want to schedule but FIRST you need to know the cost.
+The receptionist just answered. Ask your first question.
 
-Say exactly: "Hi, I'd like to schedule an appointment, but first - how much does the first visit cost?"`;
+Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuestion.question}"`;
                     }
 
                     // Check what VA has mentioned and how they responded
@@ -307,11 +411,8 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - how much does
                     const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
                     const questionsAsked = patientMessages.length;
                     
-                    // Check if VA has addressed key topics
-                    const costAnswered = vaText.includes('$') || vaText.includes('dollar') || vaText.includes('49') || vaText.includes('59') || vaText.match(/\d+/) || vaText.includes('varies') || vaText.includes('discuss');
-                    const insuranceAnswered = vaText.includes('insurance') || vaText.includes('blue cross') || vaText.includes('programs') || vaText.includes('work with') || vaText.includes('bring your card') || vaText.includes('verify');
-                    const visitLengthAnswered = vaText.includes('30') || vaText.includes('45') || vaText.includes('minute') || vaText.includes('hour');
-                    const whatToBringAnswered = vaText.includes('bring') || vaText.includes('insurance card') || vaText.includes('x-ray') || vaText.includes('mri') || vaText.includes('id');
+                    // Check which questions have been answered
+                    const answeredQuestions = selectedQuestions.filter(q => q.checkAnswer(vaText));
                     
                     // Check for RED FLAG responses (refuse to book if these happen)
                     const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
@@ -323,7 +424,7 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - how much does
                     const patientSaidReadyToBook = patientMessages.some(p => p.text.toLowerCase().includes("ready to book") || p.text.toLowerCase().includes("let's book") || p.text.toLowerCase().includes("book the appointment"));
 
                     // If questions answered and ready to book, become like Easy mode
-                    const questionsAnswered = questionsAsked >= 2 && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion;
+                    const questionsAnswered = questionsAsked >= selectedQuestions.length && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion;
 
                     if (questionsAnswered && patientSaidReadyToBook) {
                         // SWITCH TO EASY MODE BEHAVIOR
@@ -357,6 +458,16 @@ ONLY answer the specific question they just asked.
 Give a short 1-2 sentence response. Be friendly and cooperative.`;
                     }
 
+                    // Build list of questions to ask
+                    const questionsToAsk = selectedQuestions.map((q, idx) => 
+                        `${idx + 1}. ${q.question}`
+                    ).join('\n');
+
+                    // Build status of answered questions
+                    const questionStatus = selectedQuestions.map((q, idx) => 
+                        answeredQuestions.includes(q) ? `✓ Question ${idx + 1} answered` : ''
+                    ).filter(s => s).join('\n');
+
                     return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have a few quick questions first.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
@@ -371,32 +482,25 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 CONVERSATION SO FAR:
 ${convoText}
 
-QUESTIONS YOU CAN ASK (choose 2-3 total):
-1. Cost of first visit (VA can answer with range, exact number, or "we'll discuss" - ALL acceptable)
-2. Insurance acceptance (ANY answer is fine: "we work with all insurance", "bring your card", even "we don't take insurance")
-3. How long the visit takes (VA should say 30-45 minutes)
-4. What to bring (VA should say insurance card and/or previous x-rays/MRI)
-5. Questions about services like decompression or laser for neck pain (VA should redirect to booking since they're not the doctor)
+YOUR QUESTIONS TO ASK (in order):
+${questionsToAsk}
 
 STATUS:
 - Questions you've asked so far: ${questionsAsked}
-${costAnswered ? '✓ Cost question answered' : ''}
-${insuranceAnswered ? '✓ Insurance question answered' : ''}
-${visitLengthAnswered ? '✓ Visit length answered' : ''}
-${whatToBringAnswered ? '✓ What to bring answered' : ''}
+${questionStatus}
 
 CRITICAL RULES:
 ${vaPuntedToOthers ? 'RED FLAG: VA is punting to someone else instead of answering. Say: "I appreciate your time, but I need answers now. I\'ll think about it. Goodbye." (DO NOT BOOK)' : ''}
 ${vaVagueAboutInclusions ? 'RED FLAG: VA was vague about what\'s included. Say: "I need to know what I\'m paying for. I\'ll call back later. Goodbye." (DO NOT BOOK)' : ''}
 ${vaIgnoredQuestion && questionsAsked > 1 ? 'RED FLAG: VA ignored your question. Say: "This isn\'t working out. I\'ll look elsewhere. Goodbye." (DO NOT BOOK)' : ''}
 
-${questionsAnswered ? 'You\'ve asked 2+ questions and VA answered them well. Say you\'re READY TO BOOK. Say something like: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : 'Ask ONE question from your list above if you\'ve only asked 1-2 so far.'}
+${questionsAnswered ? 'You\'ve asked all your questions and VA answered them well. Say you\'re READY TO BOOK. Say something like: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
 
 ACCEPTABLE VA ANSWERS:
 - Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
 - Insurance: "We work with all types", "bring your card", or even "we don't take insurance" = ALL GOOD
 - What's included: "Consultation, exam, adjustment" or similar = GOOD
-- In-depth medical questions: VA redirecting to doctor/booking = GOOD
+- In-depth medical questions (decompression, laser): VA redirecting to doctor/booking = GOOD
 
 DO NOT give all your information at once unless VA specifically asks for it.
 
@@ -549,9 +653,17 @@ Return ONLY valid JSON:
                     audioRef.current = audio;
                     
                     audio.onended = () => {
-                        setCurrentStatus('listening');
-                        shouldListenRef.current = true;
-                        startListening();
+                        // Check if this was a goodbye response
+                        if (isGoodbyePhrase(text) || callEndingRef.current) {
+                            // Patient said goodbye - end the call
+                            console.log('Call ending detected - patient said goodbye');
+                            callEndingRef.current = true;
+                            setTimeout(() => endCall(), 1000);
+                        } else {
+                            setCurrentStatus('listening');
+                            shouldListenRef.current = true;
+                            startListening();
+                        }
                     };
                     
                     await audio.play();
@@ -609,7 +721,7 @@ Return ONLY valid JSON:
                     };
 
                     recognitionRef.current.onend = () => {
-                        if (shouldListenRef.current) {
+                        if (shouldListenRef.current && !callEndingRef.current) {
                             setTimeout(() => {
                                 try { recognitionRef.current.start(); } catch (e) {}
                             }, 100);
@@ -621,10 +733,17 @@ Return ONLY valid JSON:
             const startCall = () => {
                 if (!difficulty || !officeName || !doctorName || !firstVisitCost) return;
                 
+                // Select random questions for challenging mode
+                if (difficulty === 'challenging') {
+                    selectedQuestionsRef.current = selectRandomQuestions();
+                    console.log('Selected questions:', selectedQuestionsRef.current.map(q => q.question));
+                }
+                
                 // Reset
                 conversationRef.current = [];
                 setMessages([]);
                 setGameState('playing');
+                callEndingRef.current = false;
                 
                 // Update refs immediately
                 difficultyRef.current = difficulty;
@@ -645,7 +764,7 @@ Return ONLY valid JSON:
             };
 
             const handleVAResponse = async (transcript) => {
-                if (isProcessingRef.current) return;
+                if (isProcessingRef.current || callEndingRef.current) return;
                 isProcessingRef.current = true;
                 shouldListenRef.current = false;
                 
@@ -657,6 +776,12 @@ Return ONLY valid JSON:
                 
                 conversationRef.current.push({ speaker: 'VA', text: transcript });
                 setMessages(prev => [...prev, { type: 'staff', text: transcript }]);
+                
+                // Check if VA is saying goodbye
+                if (isGoodbyePhrase(transcript)) {
+                    console.log('Goodbye phrase detected from VA:', transcript);
+                    callEndingRef.current = true;
+                }
                 
                 try {
                     const patientReply = await getPatientResponse();
@@ -677,6 +802,7 @@ Return ONLY valid JSON:
 
             const endCall = async () => {
                 shouldListenRef.current = false;
+                callEndingRef.current = true;
                 if (recognitionRef.current) try { recognitionRef.current.stop(); } catch (e) {}
                 if (audioRef.current) audioRef.current.pause();
                 
@@ -713,15 +839,19 @@ Return ONLY valid JSON:
 
             const resetGame = () => {
                 shouldListenRef.current = false;
+                callEndingRef.current = false;
                 if (recognitionRef.current) try { recognitionRef.current.stop(); } catch (e) {}
                 if (audioRef.current) audioRef.current.pause();
                 conversationRef.current = [];
+                selectedQuestionsRef.current = [];
                 setGameState('setup');
                 setDifficulty('');
                 setMessages([]);
                 setScoreData(null);
                 setCurrentStatus('idle');
             };
+
+            const canStart = officeName && doctorName && firstVisitCost && difficulty;
 
             // PASSWORD SCREEN
             if (!isAuthenticated) {
@@ -748,22 +878,24 @@ Return ONLY valid JSON:
                 );
             }
 
-            // API KEY SCREEN
+            // API KEY PROMPT
             if (showApiPrompt) {
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🔑 API Key Required</h1>
-                            <p>Enter your OpenAI API key</p>
+                            <h1>🔑 OpenAI API Key</h1>
+                            <p>Enter your API key to use voice features</p>
                         </div>
-                        <div className="content" style={{textAlign: 'center'}}>
-                            <input 
-                                type="password"
-                                placeholder="sk-proj-..."
-                                value={apiKey}
-                                onChange={(e) => setApiKey(e.target.value)}
-                                style={{padding: '15px', fontSize: '16px', width: '100%', marginBottom: '15px', borderRadius: '10px', border: '2px solid #667eea'}}
-                            />
+                        <div className="content">
+                            <div className="form-group">
+                                <label>API Key</label>
+                                <input 
+                                    type="password"
+                                    placeholder="sk-..."
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                />
+                            </div>
                             <button className="start-btn" onClick={saveApiKey} disabled={!apiKey}>Save & Continue</button>
                         </div>
                     </div>
@@ -772,29 +904,26 @@ Return ONLY valid JSON:
 
             // SETUP SCREEN
             if (gameState === 'setup') {
-                const canStart = difficulty && officeName && doctorName && firstVisitCost;
-                
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🎤 Chiro Voice Training 2.0</h1>
-                            <p>Practice handling patient calls</p>
+                            <h1>🎯 Chiro Voice Training 2.0</h1>
+                            <p>Practice your phone skills with AI patients</p>
                         </div>
                         <div className="content">
-                            <h3 style={{marginBottom: '20px'}}>Clinic Information:</h3>
-                            
+                            <h3 style={{marginBottom: '20px'}}>Office Information:</h3>
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Office Name *</label>
                                     <input 
                                         type="text"
-                                        placeholder="Brighton Spine & Wellness"
+                                        placeholder="Smith Chiropractic"
                                         value={officeName}
                                         onChange={(e) => setOfficeName(e.target.value)}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Doctor Name *</label>
+                                    <label>Doctor's Last Name *</label>
                                     <input 
                                         type="text"
                                         placeholder="Smith"
@@ -803,7 +932,6 @@ Return ONLY valid JSON:
                                     />
                                 </div>
                             </div>
-                            
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>First Visit Cost ($) *</label>
@@ -835,7 +963,7 @@ Return ONLY valid JSON:
                                 <div className={`difficulty-btn ${difficulty === 'challenging' ? 'selected' : ''}`} onClick={() => setDifficulty('challenging')}>
                                     <div style={{fontSize: '24px'}}>🤔</div>
                                     <div><strong>Challenging</strong></div>
-                                    <div style={{fontSize: '12px'}}>Asks 2-3 questions, then books</div>
+                                    <div style={{fontSize: '12px'}}>Asks 2-3 random questions, then books</div>
                                 </div>
                             </div>
                             <button className="start-btn" onClick={startCall} disabled={!canStart}>
