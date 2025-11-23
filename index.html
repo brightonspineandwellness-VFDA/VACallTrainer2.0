@@ -175,23 +175,6 @@
                 availability: 'flexible, any day works',
                 referral: 'found you on Google',
                 insurance: 'Blue Cross Blue Shield'
-            },
-            difficult: {
-                name: 'Karen Miller',
-                phone: '555-345-6789',
-                email: 'karen.m@email.com',
-                problem: 'chronic lower back pain',
-                availability: 'afternoons only',
-                referral: 'found you on my insurance website',
-                insurance: 'Aetna'
-            },
-            creepy: {
-                name: 'John',
-                phone: '555-000-0000',
-                email: 'rather not say',
-                problem: 'some back tension',
-                availability: 'anytime',
-                referral: 'online'
             }
         };
 
@@ -309,19 +292,34 @@ Give a short 1-2 sentence response. Do not add labels or quotes.`;
                 // ==================== CHALLENGING MODE ====================
                 if (diff === 'challenging') {
                     if (isFirstResponse) {
-                        return `You are Mike Davis, calling a chiropractic office. You want to book but you're concerned about cost.
+                        return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
 
 The receptionist just answered. You want to schedule but FIRST you need to know the cost.
 
 Say exactly: "Hi, I'd like to schedule an appointment, but first - how much does the first visit cost?"`;
                     }
 
-                    // Check what VA has mentioned
-                    const vaText = conversation.filter(m => m.speaker === 'VA').map(m => m.text.toLowerCase()).join(' ');
-                    const costMentioned = vaText.includes('$') || vaText.includes('dollar') || vaText.includes('cost') || vaText.includes('fee');
-                    const insuranceDiscussed = vaText.includes('insurance') || vaText.includes('blue cross');
+                    // Check what VA has mentioned and how they responded
+                    const vaMessages = conversation.filter(m => m.speaker === 'VA');
+                    const vaText = vaMessages.map(m => m.text.toLowerCase()).join(' ');
+                    
+                    // Track questions asked and answered
+                    const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
+                    const questionsAsked = patientMessages.length;
+                    
+                    // Check if VA has addressed key topics
+                    const costAnswered = vaText.includes('$') || vaText.includes('dollar') || vaText.includes('49') || vaText.includes('59') || vaText.match(/\d+/) || vaText.includes('varies') || vaText.includes('discuss');
+                    const insuranceAnswered = vaText.includes('insurance') || vaText.includes('blue cross') || vaText.includes('programs') || vaText.includes('work with') || vaText.includes('bring your card') || vaText.includes('verify');
+                    const visitLengthAnswered = vaText.includes('30') || vaText.includes('45') || vaText.includes('minute') || vaText.includes('hour');
+                    const whatToBringAnswered = vaText.includes('bring') || vaText.includes('insurance card') || vaText.includes('x-ray') || vaText.includes('mri') || vaText.includes('id');
+                    
+                    // Check for RED FLAG responses (refuse to book if these happen)
+                    const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
+                    const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no'); // Too short, didn't really answer
+                    const vaPuntedToOthers = lastVAMessage.includes('let me ask') || lastVAMessage.includes('check with') || lastVAMessage.includes('someone else') || lastVAMessage.includes('not sure');
+                    const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come'));
 
-                    return `You are Mike Davis, a price-conscious patient calling a chiropractic office.
+                    return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have a few quick questions first.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your name: Mike Davis
@@ -335,116 +333,46 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 CONVERSATION SO FAR:
 ${convoText}
 
-YOUR CONCERNS:
-- You want to know the cost before booking
-- You want to know if they accept Blue Cross Blue Shield
-- You may ask what the first visit includes
-- You may ask about services like decompression or laser therapy
+QUESTIONS YOU CAN ASK (choose 2-3 total):
+1. Cost of first visit (VA can answer with range, exact number, or "we'll discuss" - ALL acceptable)
+2. Insurance acceptance (ANY answer is fine: "we work with all insurance", "bring your card", even "we don't take insurance")
+3. How long the visit takes (VA should say 30-45 minutes)
+4. What to bring (VA should say insurance card and/or previous x-rays/MRI)
+5. Questions about services like decompression or laser for neck pain (VA should redirect to booking since they're not the doctor)
 
-BEHAVIOR:
-${costMentioned ? '- Cost has been explained. You can proceed with booking if satisfied.' : '- Cost has NOT been explained yet. Ask about it before giving personal info.'}
-${insuranceDiscussed ? '- Insurance has been discussed.' : '- You can ask if they accept Blue Cross Blue Shield.'}
+STATUS:
+- Questions you've asked so far: ${questionsAsked}
+${costAnswered ? '✓ Cost question answered' : ''}
+${insuranceAnswered ? '✓ Insurance question answered' : ''}
+${visitLengthAnswered ? '✓ Visit length answered' : ''}
+${whatToBringAnswered ? '✓ What to bring answered' : ''}
 
-- If VA clearly explains costs and your questions are answered, cooperate and book
-- If VA is vague, avoids cost questions, or seems evasive after multiple attempts, say: "I appreciate your time, but I need to know exact costs upfront. I'll think about it. Goodbye." (This means you are NOT booking)
+CRITICAL RULES:
+${vaPuntedToOthers ? 'RED FLAG: VA is punting to someone else instead of answering. Say: "I appreciate your time, but I need answers now. I\'ll think about it. Goodbye." (DO NOT BOOK)' : ''}
+${vaVagueAboutInclusions ? 'RED FLAG: VA was vague about what\'s included. Say: "I need to know what I\'m paying for. I\'ll call back later. Goodbye." (DO NOT BOOK)' : ''}
+${vaIgnoredQuestion && questionsAsked > 1 ? 'RED FLAG: VA ignored your question. Say: "This isn\'t working out. I\'ll look elsewhere. Goodbye." (DO NOT BOOK)' : ''}
 
-When you decide to book and they ask for info:
-- Name: "Mike Davis"
+${questionsAsked >= 2 && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion ? 'You\'ve asked 2-3 questions and VA has answered them. NOW BECOME COOPERATIVE like Easy mode. Stop asking questions. Give your info when asked. Book the appointment.' : 'Ask another question from your list if you\'ve only asked 1-2 so far.'}
+
+ACCEPTABLE VA ANSWERS:
+- Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
+- Insurance: "We work with all types", "bring your card", or even "we don't take insurance" = ALL GOOD
+- What's included: "Consultation, exam, adjustment" or similar = GOOD
+- In-depth medical questions: VA redirecting to doctor/booking = GOOD
+
+When you're ready to book and VA asks for info:
+- Name: "Mike Davis"  
 - Phone: "555-234-5678"
 - Email: "mike.davis@email.com"
+- Availability: "Flexible, any day works"
+- Referral: "I found you on Google"
 
-Give a short 1-2 sentence response. Be polite but firm about wanting cost info.`;
-                }
-
-                // ==================== SKEPTICAL/DIFFICULT MODE ====================
-                if (diff === 'difficult') {
-                    if (isFirstResponse) {
-                        return `You are Karen Miller, calling a chiropractic office. You're skeptical because you've been overcharged before.
-
-The receptionist just answered. Express your interest but also your concerns.
-
-Say exactly: "Hi, I'm calling about scheduling an appointment, but I have some questions first. I've had bad experiences with chiropractors overcharging me in the past."`;
-                    }
-
-                    const vaText = conversation.filter(m => m.speaker === 'VA').map(m => m.text.toLowerCase()).join(' ');
-                    const costExplained = vaText.includes('$') || vaText.includes('dollar') || vaText.includes('fee');
-                    const hiddenFeesAddressed = vaText.includes('no hidden') || vaText.includes('that includes') || vaText.includes('covers everything');
-                    const treatmentPlanDiscussed = vaText.includes('up to you') || vaText.includes('your choice') || vaText.includes('recommend') || vaText.includes('no obligation');
-
-                    return `You are Karen Miller, a SKEPTICAL patient calling a chiropractic office.
-
-YOUR PERSONAL INFO (use these EXACT values when asked):
-- Your name: Karen Miller
-- Your phone number: 555-345-6789
-- Your email: karen.m@email.com
-- Your problem: chronic lower back pain
-- Your availability: afternoons only
-- How you heard about them: found you on my insurance website
-- Your insurance: Aetna
-
-CONVERSATION SO FAR:
-${convoText}
-
-YOUR OBJECTIONS (raise these during the conversation):
-1. "That sounds expensive - are there any hidden fees I should know about?"
-2. "How many visits will I actually need? I don't want to be locked into some long treatment plan."
-3. "Do I really need X-rays? Is that necessary or just extra cost?"
-4. "I've been to chiropractors before and felt like I was constantly being upsold."
-
-CURRENT STATUS:
-${costExplained ? '- Cost has been explained.' : '- Cost NOT explained yet - ask about it.'}
-${hiddenFeesAddressed ? '- Hidden fees question addressed.' : '- You can ask about hidden fees.'}
-${treatmentPlanDiscussed ? '- Treatment plan flexibility discussed.' : '- You can ask about being locked into treatment plans.'}
-
-BEHAVIOR:
-- Be skeptical but not hostile (pushback level 3 out of 5)
-- Ask tough questions and push back on vague answers
-- If VA addresses your concerns clearly and professionally, gradually warm up and book
-- If VA is dismissive, vague, or pushy, say: "You know what, this doesn't feel right. I'm going to look elsewhere. Thank you, goodbye." (This means you are NOT booking)
-
-When you decide to book and they ask for info:
-- Name: "Karen Miller"
-- Phone: "555-345-6789"
-- Email: "karen.m@email.com"
-
-Give a short 1-2 sentence response. Be polite but skeptical.`;
-                }
-
-                // ==================== CREEPY MODE ====================
-                if (diff === 'creepy') {
-                    if (isFirstResponse) {
-                        return `You are a caller phoning a chiropractic office. Start completely normal.
-
-The receptionist just answered. Say you want to book an appointment.
-
-Say exactly: "Hi, I'd like to schedule an appointment for some back tension."`;
-                    }
-
-                    return `You are a caller on the phone with a chiropractic office.
-
-CONVERSATION SO FAR:
-${convoText}
-
-TURN NUMBER: ${patientTurns + 1}
-
-BEHAVIOR:
-- Turns 1-2: Be COMPLETELY NORMAL. Answer questions normally, give info if asked.
-- Turn 3 and beyond: START BEING INAPPROPRIATE:
-  * Ask personal questions like "So... are you single?" or "What do you look like?"
-  * Make uncomfortable comments like "You have such a nice voice..." or "I bet you're really pretty"
-  * Ask weird questions like "Do you work there alone?"
-
-- If the VA sets boundaries, says this is inappropriate, or tries to end the call professionally:
-  * Accept it and say: "Okay, sorry about that. I'll find another office. Goodbye."
-
-- NEVER be explicit, threatening, or use profanity
-- If asked for name early on, be vague: "Oh, just call me John"
-
-Give ONE sentence. No labels.`;
+Give a short 1-2 sentence response. Be polite and friendly.`;
                 }
 
                 // Fallback
                 return `You are a patient calling a chiropractic office. The conversation so far: ${convoText}. Respond naturally in one sentence.`;
+            };
             };
 
             // Call OpenAI API
@@ -723,29 +651,6 @@ Return ONLY valid JSON:
                 setCurrentStatus('thinking');
                 setMessages(prev => [...prev, { type: 'system', text: '📊 Evaluating...' }]);
                 
-                const diff = difficultyRef.current;
-                
-                if (diff === 'creepy') {
-                    const vaHandled = conversationRef.current.some(m => 
-                        m.speaker === 'VA' && 
-                        (m.text.toLowerCase().includes('inappropriate') ||
-                         m.text.toLowerCase().includes('end this call') ||
-                         m.text.toLowerCase().includes('not appropriate') ||
-                         m.text.toLowerCase().includes('goodbye'))
-                    );
-                    
-                    setScoreData({
-                        isCreepy: true,
-                        passed: vaHandled,
-                        result: vaHandled ? 'PASS ✅' : 'NEEDS WORK',
-                        feedback: vaHandled 
-                            ? 'Good job handling the inappropriate caller!'
-                            : 'Remember to set boundaries when callers become inappropriate.'
-                    });
-                    setGameState('scoring');
-                    return;
-                }
-                
                 const evalResult = await evaluateCall();
                 
                 if (evalResult) {
@@ -893,22 +798,12 @@ Return ONLY valid JSON:
                                 <div className={`difficulty-btn ${difficulty === 'easy' ? 'selected' : ''}`} onClick={() => setDifficulty('easy')}>
                                     <div style={{fontSize: '24px'}}>😊</div>
                                     <div><strong>Easy</strong></div>
-                                    <div style={{fontSize: '12px'}}>Cooperative patient</div>
+                                    <div style={{fontSize: '12px'}}>Cooperative patient, no questions</div>
                                 </div>
                                 <div className={`difficulty-btn ${difficulty === 'challenging' ? 'selected' : ''}`} onClick={() => setDifficulty('challenging')}>
                                     <div style={{fontSize: '24px'}}>🤔</div>
                                     <div><strong>Challenging</strong></div>
-                                    <div style={{fontSize: '12px'}}>Price-conscious</div>
-                                </div>
-                                <div className={`difficulty-btn ${difficulty === 'difficult' ? 'selected' : ''}`} onClick={() => setDifficulty('difficult')}>
-                                    <div style={{fontSize: '24px'}}>😤</div>
-                                    <div><strong>Skeptical</strong></div>
-                                    <div style={{fontSize: '12px'}}>Needs convincing</div>
-                                </div>
-                                <div className={`difficulty-btn ${difficulty === 'creepy' ? 'selected' : ''}`} onClick={() => setDifficulty('creepy')}>
-                                    <div style={{fontSize: '24px'}}>😈</div>
-                                    <div><strong>Creepy</strong></div>
-                                    <div style={{fontSize: '12px'}}>Inappropriate caller</div>
+                                    <div style={{fontSize: '12px'}}>Asks 2-3 questions, then books</div>
                                 </div>
                             </div>
                             <button className="start-btn" onClick={startCall} disabled={!canStart}>
@@ -961,25 +856,6 @@ Return ONLY valid JSON:
 
             // SCORING SCREEN
             if (gameState === 'scoring') {
-                if (scoreData.isCreepy) {
-                    return (
-                        <div className="container">
-                            <div className="header">
-                                <h1>🚨 Creepy Caller Result</h1>
-                            </div>
-                            <div className="content">
-                                <div className="score-card">
-                                    <div className="overall-score" style={{color: scoreData.passed ? '#4caf50' : '#ff9800'}}>
-                                        {scoreData.result}
-                                    </div>
-                                    <p style={{textAlign: 'center', fontSize: '18px'}}>{scoreData.feedback}</p>
-                                </div>
-                                <button className="start-btn" onClick={resetGame} style={{marginTop: '20px'}}>Try Again</button>
-                            </div>
-                        </div>
-                    );
-                }
-
                 const checkpointTotal = Object.values(scoreData.scores).reduce((sum, c) => sum + c.score, 0);
                 const passed = scoreData.totalScore >= 70;
 
