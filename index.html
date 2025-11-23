@@ -406,28 +406,69 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuesti
                     // Check what VA has mentioned and how they responded
                     const vaMessages = conversation.filter(m => m.speaker === 'VA');
                     const vaText = vaMessages.map(m => m.text.toLowerCase()).join(' ');
+                    const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
                     
                     // Track questions asked and answered
                     const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
+                    const patientText = patientMessages.map(m => m.text.toLowerCase()).join(' ');
                     const questionsAsked = patientMessages.length;
                     
                     // Check which questions have been answered
                     const answeredQuestions = selectedQuestions.filter(q => q.checkAnswer(vaText));
                     
                     // Check for RED FLAG responses (refuse to book if these happen)
-                    const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
                     const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no');
                     const vaPuntedToOthers = lastVAMessage.includes('let me ask') || lastVAMessage.includes('check with') || lastVAMessage.includes('someone else') || lastVAMessage.includes('not sure');
                     const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && (lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come')));
                     
-                    // Check if patient has already said they're ready to book
-                    const patientSaidReadyToBook = patientMessages.some(p => p.text.toLowerCase().includes("ready to book") || p.text.toLowerCase().includes("let's book") || p.text.toLowerCase().includes("book the appointment"));
+                    // Check if patient has already said they're ready to book OR asked about appointment availability
+                    const patientSaidReadyToBook = patientMessages.some(p => {
+                        const text = p.text.toLowerCase();
+                        return text.includes("ready to book") || 
+                               text.includes("let's book") || 
+                               text.includes("book the appointment");
+                    });
+                    
+                    // Check if patient asked about scheduling/appointments (indicates readiness)
+                    const patientAskedAboutAppointments = patientMessages.some(p => {
+                        const text = p.text.toLowerCase();
+                        return text.includes("appointment this week") || 
+                               text.includes("get an appointment") ||
+                               text.includes("schedule this week") ||
+                               text.includes("available this week");
+                    });
 
-                    // If questions answered and ready to book, become like Easy mode
+                    // If questions answered and ready to book (either explicitly or by asking about appointments), become like Easy mode
                     const questionsAnswered = questionsAsked >= selectedQuestions.length && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion;
+                    const readyToBook = patientSaidReadyToBook || (questionsAnswered && patientAskedAboutAppointments);
 
-                    if (questionsAnswered && patientSaidReadyToBook) {
+                    if (questionsAnswered && readyToBook) {
                         // SWITCH TO EASY MODE BEHAVIOR
+                        // Check if VA is offering multiple time slots
+                        const timeSlotPattern = /(\d{1,2})\s*(am|pm|a\.m|p\.m)/gi;
+                        const timeMatches = lastVAMessage.match(timeSlotPattern);
+                        
+                        if (timeMatches && timeMatches.length >= 2) {
+                            // VA offered multiple times - pick one randomly
+                            const randomTime = timeMatches[Math.floor(Math.random() * timeMatches.length)];
+                            return `The VA just offered you multiple appointment times. Pick ONE specific time.
+
+CONVERSATION SO FAR:
+${convoText}
+
+The VA's last message mentioned these times: ${timeMatches.join(', ')}
+
+Pick ONE time randomly and respond with ONLY that choice.
+
+Examples of good responses:
+- "${randomTime} works great for me"
+- "I'll take ${randomTime}"
+- "${randomTime} is perfect"
+- "Let's do ${randomTime}"
+
+Pick one of these response styles randomly. Say nothing else.`;
+                        }
+                        
                         return `You are Mike Davis, a patient on a phone call with a chiropractic office. You've asked your questions and you're ready to book.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
@@ -448,7 +489,7 @@ CRITICAL INSTRUCTIONS - YOU ARE NOW COOPERATIVE:
 - If they ask for your email: Say ONLY "mike.davis@email.com"
 - If they ask about availability: Say ONLY "Flexible, any day works"
 - If they ask how you heard about them: Say ONLY "I found you on Google"
-- If they offer an appointment time: Say "Yes, that works for me" or similar
+- If they offer a single appointment time: Say "Yes, that works for me" or "Perfect, I'll be there"
 - If they confirm details: Say "Perfect, thank you!"
 
 DO NOT repeat information you already gave.
@@ -494,7 +535,7 @@ ${vaPuntedToOthers ? 'RED FLAG: VA is punting to someone else instead of answeri
 ${vaVagueAboutInclusions ? 'RED FLAG: VA was vague about what\'s included. Say: "I need to know what I\'m paying for. I\'ll call back later. Goodbye." (DO NOT BOOK)' : ''}
 ${vaIgnoredQuestion && questionsAsked > 1 ? 'RED FLAG: VA ignored your question. Say: "This isn\'t working out. I\'ll look elsewhere. Goodbye." (DO NOT BOOK)' : ''}
 
-${questionsAnswered ? 'You\'ve asked all your questions and VA answered them well. Say you\'re READY TO BOOK. Say something like: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
+${questionsAnswered ? 'You\'ve asked all your questions and VA answered them well. If you asked about appointment availability, you\'re ready to book. Otherwise say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
 
 ACCEPTABLE VA ANSWERS:
 - Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
