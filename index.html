@@ -362,6 +362,17 @@ The receptionist just answered. Say you want to schedule an appointment.
 Say exactly: "Hi, I'd like to schedule an appointment. I've been having some back pain for about 2 weeks."`;
                     }
 
+                    // Detect what information VA is asking for
+                    const lastVAMessage = conversation.length > 0 && conversation[conversation.length - 1].speaker === 'VA' 
+                        ? conversation[conversation.length - 1].text.toLowerCase()
+                        : '';
+                    
+                    const askingForEmail = lastVAMessage.includes('email');
+                    const askingForPhone = lastVAMessage.includes('phone') || lastVAMessage.includes('number');
+                    const askingForName = lastVAMessage.includes('name') && !askingForEmail && !askingForPhone;
+                    const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
+                    const askingForAvailability = lastVAMessage.includes('availability') || lastVAMessage.includes('earlier') || lastVAMessage.includes('later') || lastVAMessage.includes('morning') || lastVAMessage.includes('afternoon');
+
                     return `You are Sarah Johnson, a friendly patient on a phone call with a chiropractic office.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
@@ -375,18 +386,22 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 CONVERSATION SO FAR:
 ${convoText}
 
-INSTRUCTIONS:
-- Read what the VA just said and respond appropriately
-- When asked for your name, say "Sarah Johnson"
-- When asked for your phone, say "555-867-5309"
-- When asked for your email, say "sarah.johnson@email.com"
-- When asked about availability, say "this week, mornings are best"
-- When asked how you heard about them, say "a friend recommended you"
-- When they offer an appointment time, accept it
-- When they explain fees or instructions, say "Okay, sounds good"
-- Be friendly and cooperative
+VA'S LAST MESSAGE: "${lastVAMessage}"
 
-Give a short 1-2 sentence response. Do not add labels or quotes.`;
+INSTRUCTIONS - ANSWER WHAT VA ASKED FOR:
+${askingForName ? '- VA is asking for your NAME. Say ONLY: "Sarah Johnson"' : ''}
+${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. Say: "My email is sarah.johnson@email.com and my phone number is 555-867-5309"' : ''}
+${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "sarah.johnson@email.com"' : ''}
+${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-867-5309"' : ''}
+${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "A friend recommended you"' : ''}
+${askingForAvailability ? '- VA is asking about AVAILABILITY. Say ONLY: "This week, mornings are best" or answer their specific question about morning/afternoon/early/late' : ''}
+${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect"\n- If they explain fees: Say "Okay, sounds good"\n- Otherwise, respond naturally and cooperatively to what they said' : ''}
+
+DO NOT say your name unless they specifically ask for your name.
+DO NOT repeat information you already gave.
+ONLY answer the specific question they just asked.
+
+Give a short 1-2 sentence response. Be friendly and cooperative. Do not add labels or quotes.`;
                 }
 
                 // ==================== CHALLENGING MODE ====================
@@ -469,6 +484,13 @@ Examples of good responses:
 Pick one of these response styles randomly. Say nothing else.`;
                         }
                         
+                        // Detect what information VA is asking for
+                        const askingForEmail = lastVAMessage.includes('email');
+                        const askingForPhone = lastVAMessage.includes('phone') || lastVAMessage.includes('number');
+                        const askingForName = lastVAMessage.includes('name') && !askingForEmail && !askingForPhone;
+                        const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
+                        const askingForAvailability = lastVAMessage.includes('availability') || lastVAMessage.includes('earlier') || lastVAMessage.includes('later') || lastVAMessage.includes('morning') || lastVAMessage.includes('afternoon');
+                        
                         return `You are Mike Davis, a patient on a phone call with a chiropractic office. You've asked your questions and you're ready to book.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
@@ -481,19 +503,19 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 CONVERSATION SO FAR:
 ${convoText}
 
-CRITICAL INSTRUCTIONS - YOU ARE NOW COOPERATIVE:
-- The VA just spoke. READ their last message carefully.
-- ONLY answer what they specifically asked for
-- If they ask for your name: Say ONLY "Mike Davis"
-- If they ask for your phone: Say ONLY "555-234-5678"
-- If they ask for your email: Say ONLY "mike.davis@email.com"
-- If they ask about availability: Say ONLY "Flexible, any day works"
-- If they ask how you heard about them: Say ONLY "I found you on Google"
-- If they offer a single appointment time: Say "Yes, that works for me" or "Perfect, I'll be there"
-- If they confirm details: Say "Perfect, thank you!"
+VA'S LAST MESSAGE: "${lastVAMessage}"
+
+CRITICAL INSTRUCTIONS - ANSWER WHAT VA ASKED FOR:
+${askingForName ? '- VA is asking for your NAME. Say ONLY: "Mike Davis"' : ''}
+${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. Say: "My email is mike.davis@email.com and my phone number is 555-234-5678"' : ''}
+${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "mike.davis@email.com"' : ''}
+${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-234-5678"' : ''}
+${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "I found you on Google"' : ''}
+${askingForAvailability ? '- VA is asking about AVAILABILITY/TIME preference. Say ONLY: "Flexible, any day works" or answer their specific question about morning/afternoon/early/late' : ''}
+${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect, I\'ll be there"\n- If they confirm details: Say "Perfect, thank you!"\n- Otherwise, respond naturally to what they said' : ''}
 
 DO NOT repeat information you already gave.
-DO NOT volunteer all your info at once.
+DO NOT say your name unless they specifically ask for your name.
 ONLY answer the specific question they just asked.
 
 Give a short 1-2 sentence response. Be friendly and cooperative.`;
@@ -606,26 +628,62 @@ Give a short 1-2 sentence response. Be polite and friendly.`;
                 
                 const evalPrompt = `Evaluate this VA's phone call performance at a chiropractic office.
 
-OFFICE: ${office}
-DOCTOR: Dr. ${doctor}
-FIRST VISIT COST: $${cost}
-DIFFICULTY: ${diff.toUpperCase()}
+CORRECT OFFICE INFO (what VA should have said):
+- OFFICE NAME: ${office}
+- DOCTOR NAME: Dr. ${doctor}
+- FIRST VISIT COST: $${cost}
 
-TRANSCRIPT:
+DIFFICULTY MODE: ${diff.toUpperCase()}
+
+FULL CALL TRANSCRIPT:
 ${convoText}
 
-Score 0-10 for each:
-1. GREETING - Did VA introduce with name AND office name?
-2. REASON - Did VA identify why patient called?
-3. SCHEDULING - Did VA offer and confirm appointment time?
-4. PATIENT INFO - Did VA collect name, phone, email?
-5. REFERRAL - Did VA ask how patient heard about them?
-6. FEE - Did VA explain first visit cost and what's included?
-7. CLOSING - Did VA close professionally?
+EVALUATION CRITERIA - Score each 0-10:
 
-Add up to 30 bonus points for flow and professionalism.
+1. GREETING & INTRODUCTION (0-10):
+   - Did VA introduce themselves with their name?
+   - Did VA say the office name (give full credit even if speech recognition misheard the exact pronunciation, as long as they attempted to say the office name)?
+   - Professional and friendly tone?
+   - NOTE: The transcript may contain speech recognition errors. Focus on whether the VA clearly ATTEMPTED to say the office name, even if the transcription shows errors.
 
-Return ONLY valid JSON:
+2. REASON FOR CALL (0-10):
+   - Did VA identify why patient called (pain complaint, appointment request)?
+   - Did they acknowledge it appropriately?
+
+3. SCHEDULING & TIME (0-10):
+   - Did VA offer specific appointment date/time?
+   - Did they confirm the appointment clearly?
+   - Did they ask about patient's time preferences?
+
+4. PATIENT INFORMATION (0-10):
+   - Did VA collect full name?
+   - Did VA collect phone number?
+   - Did VA collect email address?
+
+5. REFERRAL SOURCE (0-10):
+   - Did VA ask how patient heard about the office?
+   - Did they note the response?
+
+6. FEE EXPLANATION (0-10):
+   - Did VA mention the first visit cost (should be $${cost})?
+   - Did VA explain what's included (consultation, exam, adjustment)?
+   - Clear and confident explanation?
+
+7. PROFESSIONAL CLOSING (0-10):
+   - Did VA summarize the appointment details?
+   - Did VA end warmly and professionally?
+   - Did they say goodbye appropriately?
+
+BONUS POINTS (0-30):
+- Natural conversational flow
+- Handling questions smoothly
+- Professional tone throughout
+- No awkward pauses or confusion
+- Personalization and warmth
+
+IMPORTANT: Be lenient with office name pronunciation in the greeting. If the VA clearly attempted to say an office name in their greeting (even if the speech recognition transcribed it incorrectly), give them credit for introducing the office.
+
+Return ONLY valid JSON (no markdown, no code blocks):
 {
     "scores": {
         "greeting": {"score": 0, "note": ""},
