@@ -315,9 +315,47 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - how much does
                     
                     // Check for RED FLAG responses (refuse to book if these happen)
                     const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
-                    const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no'); // Too short, didn't really answer
+                    const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no');
                     const vaPuntedToOthers = lastVAMessage.includes('let me ask') || lastVAMessage.includes('check with') || lastVAMessage.includes('someone else') || lastVAMessage.includes('not sure');
-                    const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come'));
+                    const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && (lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come')));
+                    
+                    // Check if patient has already said they're ready to book
+                    const patientSaidReadyToBook = patientMessages.some(p => p.text.toLowerCase().includes("ready to book") || p.text.toLowerCase().includes("let's book") || p.text.toLowerCase().includes("book the appointment"));
+
+                    // If questions answered and ready to book, become like Easy mode
+                    const questionsAnswered = questionsAsked >= 2 && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion;
+
+                    if (questionsAnswered && patientSaidReadyToBook) {
+                        // SWITCH TO EASY MODE BEHAVIOR
+                        return `You are Mike Davis, a patient on a phone call with a chiropractic office. You've asked your questions and you're ready to book.
+
+YOUR PERSONAL INFO (use these EXACT values when asked):
+- Your name: Mike Davis
+- Your phone number: 555-234-5678
+- Your email: mike.davis@email.com
+- Your availability: flexible, any day works
+- How you heard about them: found you on Google
+
+CONVERSATION SO FAR:
+${convoText}
+
+CRITICAL INSTRUCTIONS - YOU ARE NOW COOPERATIVE:
+- The VA just spoke. READ their last message carefully.
+- ONLY answer what they specifically asked for
+- If they ask for your name: Say ONLY "Mike Davis"
+- If they ask for your phone: Say ONLY "555-234-5678"
+- If they ask for your email: Say ONLY "mike.davis@email.com"
+- If they ask about availability: Say ONLY "Flexible, any day works"
+- If they ask how you heard about them: Say ONLY "I found you on Google"
+- If they offer an appointment time: Say "Yes, that works for me" or similar
+- If they confirm details: Say "Perfect, thank you!"
+
+DO NOT repeat information you already gave.
+DO NOT volunteer all your info at once.
+ONLY answer the specific question they just asked.
+
+Give a short 1-2 sentence response. Be friendly and cooperative.`;
+                    }
 
                     return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have a few quick questions first.
 
@@ -352,7 +390,7 @@ ${vaPuntedToOthers ? 'RED FLAG: VA is punting to someone else instead of answeri
 ${vaVagueAboutInclusions ? 'RED FLAG: VA was vague about what\'s included. Say: "I need to know what I\'m paying for. I\'ll call back later. Goodbye." (DO NOT BOOK)' : ''}
 ${vaIgnoredQuestion && questionsAsked > 1 ? 'RED FLAG: VA ignored your question. Say: "This isn\'t working out. I\'ll look elsewhere. Goodbye." (DO NOT BOOK)' : ''}
 
-${questionsAsked >= 2 && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion ? 'You\'ve asked 2-3 questions and VA has answered them. NOW BECOME COOPERATIVE like Easy mode. Stop asking questions. Give your info when asked. Book the appointment.' : 'Ask another question from your list if you\'ve only asked 1-2 so far.'}
+${questionsAnswered ? 'You\'ve asked 2+ questions and VA answered them well. Say you\'re READY TO BOOK. Say something like: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : 'Ask ONE question from your list above if you\'ve only asked 1-2 so far.'}
 
 ACCEPTABLE VA ANSWERS:
 - Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
@@ -360,12 +398,7 @@ ACCEPTABLE VA ANSWERS:
 - What's included: "Consultation, exam, adjustment" or similar = GOOD
 - In-depth medical questions: VA redirecting to doctor/booking = GOOD
 
-When you're ready to book and VA asks for info:
-- Name: "Mike Davis"  
-- Phone: "555-234-5678"
-- Email: "mike.davis@email.com"
-- Availability: "Flexible, any day works"
-- Referral: "I found you on Google"
+DO NOT give all your information at once unless VA specifically asks for it.
 
 Give a short 1-2 sentence response. Be polite and friendly.`;
                 }
