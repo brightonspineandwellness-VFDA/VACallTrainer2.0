@@ -509,33 +509,49 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuesti
                     const patientText = patientMessages.map(m => m.text.toLowerCase()).join(' ');
                     const questionsAsked = patientMessages.length;
                     
-                    // Count BAD VA RESPONSES (new tracking system)
+                    // Count BAD VA RESPONSES - CRITICAL CHECK FIRST
                     let badAnswerCount = 0;
                     vaMessages.forEach(msg => {
-                        const msgText = msg.text.toLowerCase();
-                        // Check for "I don't know" type responses
-                        if (msgText.includes("i don't know") || 
-                            msgText.includes("i dont know") || 
-                            msgText.includes("i wouldn't know") || 
-                            msgText.includes("i wouldnt know") ||
-                            msgText.includes("not sure")) {
+                        const msgText = msg.text.toLowerCase().trim();
+                        
+                        // Check for "I don't know" type responses - handles ANY apostrophe type
+                        const hasIDont = msgText.includes("i don") || msgText.includes("i wouldn");
+                        const hasDont = msgText.includes("don") && msgText.includes("know");
+                        const hasWouldnt = msgText.includes("wouldn") && msgText.includes("know");
+                        const hasNotSure = msgText.includes("not sure");
+                        
+                        if (hasIDont || hasDont || hasWouldnt || hasNotSure) {
                             badAnswerCount++;
+                            console.log(`Bad answer detected: "I don't know" in "${msg.text}"`);
                         }
-                        // Check for passing off to someone else
+                        // Check for passing off to someone else - SEPARATE CHECK
                         if (msgText.includes("pass you to") || 
                             msgText.includes("transfer you") || 
                             msgText.includes("let me ask") ||
-                            msgText.includes("check with")) {
+                            msgText.includes("check with") ||
+                            msgText.includes("have to ask") ||
+                            msgText.includes("need to ask")) {
                             badAnswerCount++;
+                            console.log(`Bad answer detected: "passing off" in "${msg.text}"`);
                         }
-                        // Check for non-answers (uhhh, ummm without substance)
-                        if ((msgText.includes("uhh") || msgText.includes("umm") || msgText.includes("uh")) && 
-                            msgText.length < 30) {
+                        // Check for non-answers (very short responses with just "um", "uh", "umm") - SEPARATE CHECK
+                        if (msgText.length < 30 && 
+                            (msgText === 'um' || 
+                             msgText === 'uh' || 
+                             msgText === 'umm' || 
+                             msgText === 'uhh' ||
+                             msgText.startsWith('um ') ||
+                             msgText.startsWith('uh ') ||
+                             msgText.startsWith('umm ') ||
+                             msgText.startsWith('uhh '))) {
                             badAnswerCount++;
+                            console.log(`Bad answer detected: "non-answer" in "${msg.text}"`);
                         }
                     });
                     
-                    // If 3+ bad answers, REFUSE TO BOOK and end call
+                    console.log(`TOTAL BAD ANSWER COUNT: ${badAnswerCount}/3`);
+                    
+                    // CRITICAL: If 3+ bad answers, REFUSE TO BOOK immediately - this must be checked FIRST
                     if (badAnswerCount >= 3) {
                         const refusalMessages = [
                             "Thank you for your time, but I need someone who can answer my questions. I'll call back another time. Goodbye.",
@@ -544,18 +560,24 @@ Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuesti
                             "This isn't working for me. I'll find another chiropractor who can help. Goodbye."
                         ];
                         
-                        return `The VA has failed to answer your questions properly 3 times. You are frustrated and will NOT book.
+                        const randomRefusal = refusalMessages[Math.floor(Math.random() * refusalMessages.length)];
+                        
+                        return `The VA has given ${badAnswerCount} bad answers to your questions. You are frustrated and will NOT book.
 
-Say ONE of these refusal messages:
-${refusalMessages.map((msg, i) => `${i + 1}. "${msg}"`).join('\n')}
+CRITICAL: The VA could not answer your questions properly. DO NOT book the appointment.
 
-Pick one randomly. Say ONLY that message, nothing else. This ends the call.`;
+Say EXACTLY: "${randomRefusal}"
+
+Say ONLY that message, nothing else. This ends the call. DO NOT say you're ready to book.`;
                     }
                     
-                    // Check which questions have been answered
+                    // Check which questions have been answered PROPERLY
                     const answeredQuestions = selectedQuestions.filter(q => q.checkAnswer(vaText));
                     
-                    // Check for RED FLAG responses (refuse to book if these happen)
+                    // Questions are only "answered" if VA actually gave good answers (not bad answers)
+                    const questionsProperlyAnswered = answeredQuestions.length >= selectedQuestions.length && badAnswerCount === 0;
+                    
+                    // Check for RED FLAG responses
                     const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no');
                     const vaPuntedToOthers = lastVAMessage.includes('let me ask') || lastVAMessage.includes('check with') || lastVAMessage.includes('someone else') || lastVAMessage.includes('not sure');
                     const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && (lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come')));
@@ -577,11 +599,10 @@ Pick one randomly. Say ONLY that message, nothing else. This ends the call.`;
                                text.includes("available this week");
                     });
 
-                    // If questions answered and ready to book (either explicitly or by asking about appointments), become like Easy mode
-                    const questionsAnswered = questionsAsked >= selectedQuestions.length && !vaPuntedToOthers && !vaVagueAboutInclusions && !vaIgnoredQuestion && badAnswerCount < 3;
-                    const readyToBook = patientSaidReadyToBook || (questionsAnswered && patientAskedAboutAppointments);
+                    // Patient is ready to book ONLY if questions were properly answered (no bad answers)
+                    const readyToBook = questionsProperlyAnswered && (patientSaidReadyToBook || patientAskedAboutAppointments);
 
-                    if (questionsAnswered && readyToBook) {
+                    if (questionsProperlyAnswered && readyToBook) {
                         // SWITCH TO EASY MODE BEHAVIOR
                         
                         // Check if VA is offering CHOICES (A or B) - patient should pick one
@@ -756,11 +777,12 @@ YOUR QUESTIONS TO ASK (in order):
 ${questionsToAsk}
 
 STATUS:
-- Questions you've asked so far: ${questionsAsked}
-- Bad VA responses so far: ${badAnswerCount}/3
+- Questions you've asked so far: ${questionsAsked}/${selectedQuestions.length}
+- Bad VA responses so far: ${badAnswerCount}/3 ${badAnswerCount >= 3 ? '❌ TOO MANY BAD ANSWERS' : ''}
+- Questions properly answered: ${answeredQuestions.length}/${selectedQuestions.length}
 ${questionStatus}
 
-${questionsAnswered ? 'You\'ve asked all your questions and VA answered them well. If you asked about appointment availability, you\'re ready to book. Otherwise say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
+${questionsProperlyAnswered ? 'You\'ve asked all your questions and VA answered them well. If you asked about appointment availability, you\'re ready to book. Otherwise say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.` : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
 
 ACCEPTABLE VA ANSWERS:
 - Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
