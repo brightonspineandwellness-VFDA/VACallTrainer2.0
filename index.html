@@ -154,8 +154,25 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        const APP_PASSWORD = "VFDA2025";
+        // INDIVIDUAL PASSWORD SYSTEM
+        // Add new VA passwords here in the format: "password": "VA Name"
+        const AUTHORIZED_USERS = {
+            "VFDA2025": "Demo User",
+            "VFDA-SARAH-2025": "Sarah Johnson",
+            "VFDA-MIKE-2025": "Mike Davis",
+            "VFDA-EMMA-2025": "Emma Wilson",
+            "VFDA-ALEX-2025": "Alex Rodriguez",
+            "VFDA-NASHY-2025": "Nashren Nicomedez",
+            "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
+            "VFDA-MATT-2025": "Matthew Herba",
+            "VFDA-KEVIN-2025": "Kevin Noffsinger",
+            // Add more passwords below as needed:
+            // "VFDA-NAME-2025": "Full Name",
+        };
+
         const STORED_KEY = localStorage.getItem('openai_api_key');
+        const STORED_VA_NAME = localStorage.getItem('va_name');
+        const STORED_PASSWORD = localStorage.getItem('user_password');
 
         // Patient personas - OUTSIDE component to avoid closure issues
         const PATIENT_PERSONAS = {
@@ -271,7 +288,8 @@
             const [officeName, setOfficeName] = useState('');
             const [doctorName, setDoctorName] = useState('');
             const [firstVisitCost, setFirstVisitCost] = useState('');
-            const [vaName, setVaName] = useState('');
+            const [vaName, setVaName] = useState(STORED_VA_NAME || '');
+            const [currentVAName, setCurrentVAName] = useState(STORED_VA_NAME || '');
             
             const [difficulty, setDifficulty] = useState('');
             const [messages, setMessages] = useState([]);
@@ -306,11 +324,28 @@
             useEffect(() => { firstVisitCostRef.current = firstVisitCost; }, [firstVisitCost]);
 
             const checkPassword = () => {
-                if (passwordInput === APP_PASSWORD) {
+                const trimmedPassword = passwordInput.trim();
+                
+                // Check if password exists in authorized users
+                if (AUTHORIZED_USERS[trimmedPassword]) {
+                    const vaNameFromPassword = AUTHORIZED_USERS[trimmedPassword];
+                    
+                    // Store authentication and VA info
                     sessionStorage.setItem('auth', 'true');
+                    localStorage.setItem('va_name', vaNameFromPassword);
+                    localStorage.setItem('user_password', trimmedPassword);
+                    
+                    // Track first login time
+                    if (!localStorage.getItem('first_login_' + trimmedPassword)) {
+                        localStorage.setItem('first_login_' + trimmedPassword, new Date().toISOString());
+                    }
+                    localStorage.setItem('last_login_' + trimmedPassword, new Date().toISOString());
+                    
+                    setCurrentVAName(vaNameFromPassword);
+                    setVaName(vaNameFromPassword);
                     setIsAuthenticated(true);
                 } else {
-                    setPasswordError('Wrong password');
+                    setPasswordError('Invalid access code. Please check and try again.');
                     setPasswordInput('');
                 }
             };
@@ -1264,12 +1299,12 @@ Return ONLY valid JSON (no markdown, no code blocks):
                     <div className="container">
                         <div className="header">
                             <h1>🔐 Virtual Front Desk Academy</h1>
-                            <p>Enter password to access trainer</p>
+                            <p>Enter your access code to begin training</p>
                         </div>
                         <div className="content" style={{textAlign: 'center'}}>
                             <input 
                                 type="password"
-                                placeholder="Password"
+                                placeholder="Access Code"
                                 value={passwordInput}
                                 onChange={(e) => setPasswordInput(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && checkPassword()}
@@ -1277,7 +1312,8 @@ Return ONLY valid JSON (no markdown, no code blocks):
                             />
                             {passwordError && <p style={{color: 'red', marginBottom: '15px'}}>{passwordError}</p>}
                             <br/>
-                            <button className="start-btn" style={{maxWidth: '300px'}} onClick={checkPassword}>Access</button>
+                            <button className="start-btn" style={{maxWidth: '300px'}} onClick={checkPassword}>Access Trainer</button>
+                            <p style={{marginTop: '20px', fontSize: '12px', color: '#666'}}>Don't have an access code? Contact your administrator.</p>
                         </div>
                     </div>
                 );
@@ -1316,6 +1352,12 @@ Return ONLY valid JSON (no markdown, no code blocks):
                             <p>Practice your phone skills with AI patients</p>
                         </div>
                         <div className="content">
+                            {currentVAName && (
+                                <div style={{marginBottom: '25px', padding: '15px', background: '#e8f5e9', borderRadius: '10px', textAlign: 'center'}}>
+                                    <strong>👋 Welcome, {currentVAName}!</strong>
+                                </div>
+                            )}
+                            
                             <h3 style={{marginBottom: '20px'}}>Office Information:</h3>
                             <div className="form-row">
                                 <div className="form-group">
@@ -1351,9 +1393,11 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                     <label>Your Name (VA)</label>
                                     <input 
                                         type="text"
-                                        placeholder="Optional"
+                                        placeholder="Your name"
                                         value={vaName}
+                                        readOnly={currentVAName ? true : false}
                                         onChange={(e) => setVaName(e.target.value)}
+                                        style={{background: currentVAName ? '#f5f5f5' : 'white', cursor: currentVAName ? 'not-allowed' : 'text'}}
                                     />
                                 </div>
                             </div>
