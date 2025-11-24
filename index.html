@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chiro Voice Training 2.0</title>
+    <title>Virtual Front Desk Academy Trainer</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -154,7 +154,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        const APP_PASSWORD = "ChiroTrain2025";
+        const APP_PASSWORD = "VFDA2025";
         const STORED_KEY = localStorage.getItem('openai_api_key');
 
         // Patient personas - OUTSIDE component to avoid closure issues
@@ -278,6 +278,8 @@
             const [currentStatus, setCurrentStatus] = useState('idle');
             const [scoreData, setScoreData] = useState(null);
             const [interimText, setInterimText] = useState('');
+            const [callStartTime, setCallStartTime] = useState(null);
+            const [callEndTime, setCallEndTime] = useState(null);
 
             // Use REFS for values needed in async callbacks to avoid stale closures
             const conversationRef = useRef([]);
@@ -316,6 +318,44 @@
             const saveApiKey = () => {
                 localStorage.setItem('openai_api_key', apiKey);
                 setShowApiPrompt(false);
+            };
+
+            // Generate phone ring sound
+            const playPhoneRing = async () => {
+                return new Promise((resolve) => {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const duration = 2; // 2 seconds of ringing
+                    
+                    // Create oscillators for ring tone (440Hz and 480Hz)
+                    const osc1 = audioContext.createOscillator();
+                    const osc2 = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    osc1.connect(gainNode);
+                    osc2.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    osc1.frequency.value = 440;
+                    osc2.frequency.value = 480;
+                    gainNode.gain.value = 0.3;
+                    
+                    // Ring pattern: on for 0.4s, off for 0.2s, repeat
+                    const now = audioContext.currentTime;
+                    for (let i = 0; i < 3; i++) {
+                        const startTime = now + (i * 0.6);
+                        gainNode.gain.setValueAtTime(0.3, startTime);
+                        gainNode.gain.setValueAtTime(0, startTime + 0.4);
+                    }
+                    
+                    osc1.start(now);
+                    osc2.start(now);
+                    osc1.stop(now + duration);
+                    osc2.stop(now + duration);
+                    
+                    setTimeout(() => {
+                        resolve();
+                    }, duration * 1000);
+                });
             };
 
             // Build prompt based on difficulty and conversation
@@ -1079,7 +1119,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 }
             }, []);
 
-            const startCall = () => {
+            const startCall = async () => {
                 if (!difficulty || !officeName || !doctorName || !firstVisitCost) return;
                 
                 // Select random questions for challenging mode
@@ -1094,6 +1134,10 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 setGameState('playing');
                 callEndingRef.current = false;
                 
+                // Record start time
+                const startTime = new Date();
+                setCallStartTime(startTime);
+                
                 // Update refs immediately
                 difficultyRef.current = difficulty;
                 apiKeyRef.current = apiKey;
@@ -1105,7 +1149,13 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 console.log('Difficulty set to:', difficulty);
                 console.log('Difficulty ref:', difficultyRef.current);
                 
-                setMessages([{ type: 'system', text: '📞 Incoming call! Answer with your greeting...' }]);
+                setMessages([{ type: 'system', text: '📞 Incoming call...' }]);
+                setCurrentStatus('idle');
+                
+                // Play phone ring
+                await playPhoneRing();
+                
+                setMessages([{ type: 'system', text: '📞 Call connected! Answer with your greeting...' }]);
                 setCurrentStatus('listening');
                 shouldListenRef.current = true;
                 
@@ -1155,6 +1205,10 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 if (recognitionRef.current) try { recognitionRef.current.stop(); } catch (e) {}
                 if (audioRef.current) audioRef.current.pause();
                 
+                // Record end time
+                const endTime = new Date();
+                setCallEndTime(endTime);
+                
                 setCurrentStatus('thinking');
                 setMessages(prev => [...prev, { type: 'system', text: '📊 Evaluating...' }]);
                 
@@ -1198,6 +1252,8 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 setMessages([]);
                 setScoreData(null);
                 setCurrentStatus('idle');
+                setCallStartTime(null);
+                setCallEndTime(null);
             };
 
             const canStart = officeName && doctorName && firstVisitCost && difficulty;
@@ -1207,8 +1263,8 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🔐 Chiro Voice Training</h1>
-                            <p>Enter password to access</p>
+                            <h1>🔐 Virtual Front Desk Academy</h1>
+                            <p>Enter password to access trainer</p>
                         </div>
                         <div className="content" style={{textAlign: 'center'}}>
                             <input 
@@ -1256,7 +1312,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🎯 Chiro Voice Training 2.0</h1>
+                            <h1>🎯 Virtual Front Desk Academy Trainer</h1>
                             <p>Practice your phone skills with AI patients</p>
                         </div>
                         <div className="content">
@@ -1367,6 +1423,28 @@ Return ONLY valid JSON (no markdown, no code blocks):
             if (gameState === 'scoring') {
                 const checkpointTotal = Object.values(scoreData.scores).reduce((sum, c) => sum + c.score, 0);
                 const passed = scoreData.totalScore >= 70;
+                
+                // Format timestamps
+                const formatDate = (date) => {
+                    if (!date) return 'N/A';
+                    return date.toLocaleString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                };
+                
+                const calculateDuration = () => {
+                    if (!callStartTime || !callEndTime) return 'N/A';
+                    const durationMs = callEndTime - callStartTime;
+                    const minutes = Math.floor(durationMs / 60000);
+                    const seconds = Math.floor((durationMs % 60000) / 1000);
+                    return `${minutes}m ${seconds}s`;
+                };
 
                 return (
                     <div className="container">
@@ -1376,6 +1454,16 @@ Return ONLY valid JSON (no markdown, no code blocks):
                         </div>
                         <div className="content">
                             <div className="score-card">
+                                {/* Timestamp Information */}
+                                <div style={{marginBottom: '20px', padding: '15px', background: '#f0f0f0', borderRadius: '10px', fontSize: '13px'}}>
+                                    <div style={{marginBottom: '8px'}}><strong>Office:</strong> {officeName}</div>
+                                    <div style={{marginBottom: '8px'}}><strong>Doctor:</strong> Dr. {doctorName}</div>
+                                    {vaName && <div style={{marginBottom: '8px'}}><strong>VA Name:</strong> {vaName}</div>}
+                                    <div style={{marginBottom: '8px'}}><strong>Difficulty:</strong> {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</div>
+                                    <div style={{marginBottom: '8px'}}><strong>Call Duration:</strong> {calculateDuration()}</div>
+                                    <div style={{marginBottom: '8px'}}><strong>Completed:</strong> {formatDate(callEndTime)}</div>
+                                </div>
+                                
                                 <div className="overall-score" style={{color: passed ? '#4caf50' : '#f44336'}}>
                                     {scoreData.totalScore}/100
                                 </div>
