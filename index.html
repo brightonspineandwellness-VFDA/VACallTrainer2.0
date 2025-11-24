@@ -163,9 +163,9 @@
             "VFDA-EMMA-2025": "Emma Wilson",
             "VFDA-ALEX-2025": "Alex Rodriguez",
             "VFDA-NASHY-2025": "Nashren Nicomedez",
-            "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
-            "VFDA-MATT-2025": "Matthew Herba",
             "VFDA-KEVIN-2025": "Kevin Noffsinger",
+            "VFDA-MATT-2025": "Matthew Herba",
+            "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
             // Add more passwords below as needed:
             // "VFDA-NAME-2025": "Full Name",
         };
@@ -443,11 +443,36 @@ Say exactly: "Hi, I'd like to schedule an appointment. I've been having some bac
                         ? conversation[conversation.length - 1].text.toLowerCase()
                         : '';
                     
+                    // Check for SPECIFIC TIME SLOTS FIRST (highest priority)
+                    const timeSlotPattern = /(\d{1,2})\s*(am|pm|a\.m|p\.m)/gi;
+                    const timeMatches = lastVAMessage.match(timeSlotPattern);
+                    
+                    if (timeMatches && timeMatches.length >= 2) {
+                        // VA offered multiple time slots - pick one randomly
+                        const randomTime = timeMatches[Math.floor(Math.random() * timeMatches.length)];
+                        return `The VA just offered you multiple appointment times. Pick ONE specific time.
+
+CONVERSATION SO FAR:
+${convoText}
+
+The VA's last message mentioned these times: ${timeMatches.join(', ')}
+
+Pick ONE time randomly and respond with ONLY that choice.
+
+Examples of good responses:
+- "${randomTime} works great for me"
+- "I'll take ${randomTime}"
+- "${randomTime} is perfect"
+- "Let's do ${randomTime}"
+
+Pick one of these response styles randomly. Say nothing else.`;
+                    }
+                    
                     // Check if VA is offering CHOICES (A or B) - patient should pick one
                     const askingMorningOrAfternoon = lastVAMessage.includes('morning') && lastVAMessage.includes('afternoon') && lastVAMessage.includes(' or ');
                     const askingEarlyOrLate = (lastVAMessage.includes('early') || lastVAMessage.includes('earlier')) && (lastVAMessage.includes('late') || lastVAMessage.includes('later')) && lastVAMessage.includes(' or ');
                     
-                    // If VA is asking patient to choose between time options, handle that first
+                    // If VA is asking patient to choose between time options, handle that
                     if (askingMorningOrAfternoon) {
                         const choice = Math.random() < 0.5 ? 'morning' : 'afternoon';
                         return `The VA is asking if you prefer morning or afternoon.
@@ -525,7 +550,8 @@ Pick one response style randomly. Say nothing else.`;
                     );
                     
                     const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
-                    const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate;
+                    // Only trigger general availability if NOT asking about specific times or choices
+                    const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
 
                     return `You are Sarah Johnson, a friendly patient on a phone call with a chiropractic office.
 
@@ -790,7 +816,8 @@ Pick one response style randomly. Say nothing else.`;
                         );
                         
                         const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
-                        const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate;
+                        // Only trigger general availability if NOT asking about specific times or choices
+                        const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
                         
                         return `You are Mike Davis, a patient on a phone call with a chiropractic office. You've asked your questions and you're ready to book.
 
