@@ -162,8 +162,8 @@
             "VFDA-MIKE-2025": "Mike Davis",
             "VFDA-EMMA-2025": "Emma Wilson",
             "VFDA-ALEX-2025": "Alex Rodriguez",
-            "VFDA-MATT-2025": "Matthew Herba",
             "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
+            "VFDA-MATT-2025": "Matthew Herba",
             // Add more passwords below as needed:
             // "VFDA-NAME-2025": "Full Name",
         };
@@ -721,7 +721,7 @@ Say ONLY that message, nothing else. This ends the call. DO NOT say you're ready
                     }
                     
                     // Check which questions have been answered PROPERLY
-                    const selectedPattern = selectedQuestionsRef.current;
+                    // selectedPattern already declared at top of challenging mode section
                     let answeredQuestions = [];
                     
                     if (selectedPattern.type === 'insurance_triad') {
@@ -908,8 +908,8 @@ ${askingForName ? '- VA is asking for your NAME. Say ONLY: "Mike Davis"' : ''}
 ${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. Say: "My email is mike.davis@email.com and my phone number is 555-234-5678"' : ''}
 ${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "mike.davis@email.com"' : ''}
 ${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-234-5678"' : ''}
-${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "I found you on Google"' : ''}
-${askingWhoReferred ? '- VA is asking WHO referred you. Say ONLY: "Tim"' : ''}
+${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "A friend recommended you"' : ''}
+${askingWhoReferred ? '- VA is asking WHO your friend is. Say ONLY: "Tim"' : ''}
 ${askingForAvailability ? '- VA is asking about general AVAILABILITY. Say ONLY: "Flexible, any day works"' : ''}
 ${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingWhoReferred && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect, I\'ll be there"\n- If they confirm details or inform about sending forms: Say "Perfect, thank you!" or "Sounds good"\n- Otherwise, respond naturally to what they said' : ''}
 
@@ -943,8 +943,8 @@ Give a short 1-2 sentence response. Be friendly and cooperative.`;
                     ).filter(s => s).join('\n');
                     
                     // Check if VA is asking for referral follow-up
-                    const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
-                    const askingWhoReferred = patientSaidGoogle && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend'));
+                    const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
+                    const askingWhoReferred = patientSaidFriend && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend') || lastVAMessage.includes('friend\'s name'));
 
                     return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have ${selectedPattern.type === 'insurance_triad' ? 'insurance questions' : 'a few questions'} first.
 
@@ -954,7 +954,7 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your email: mike.davis@email.com
 - Your problem: neck pain and stiffness
 - Your availability: flexible, any day works
-- How you heard about them: found you on Google
+- How you heard about them: a friend recommended you
 - Friend who referred you (if asked): Tim
 ${selectedPattern.type === 'insurance_triad' ? `- Your insurance: ${selectedPattern.insuranceName}` : ''}
 
