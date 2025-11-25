@@ -162,8 +162,6 @@
             "VFDA-MIKE-2025": "Mike Davis",
             "VFDA-EMMA-2025": "Emma Wilson",
             "VFDA-ALEX-2025": "Alex Rodriguez",
-            "VFDA-NASHY-2025": "Nashren Nicomedez",
-            "VFDA-KEVIN-2025": "Kevin Noffsinger",
             "VFDA-MATT-2025": "Matthew Herba",
             "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
             // Add more passwords below as needed:
@@ -968,52 +966,83 @@ ${convoText}
 EVALUATION CRITERIA - Score each 0-10:
 
 1. GREETING & INTRODUCTION (0-10):
-   - Did VA introduce themselves with their name?
-   - Did VA say the office name (give full credit even if speech recognition misheard the exact pronunciation, as long as they attempted to say the office name)?
-   - Professional and friendly tone?
-   - NOTE: The transcript may contain speech recognition errors. Focus on whether the VA clearly ATTEMPTED to say the office name, even if the transcription shows errors.
+   Give 10/10 ONLY if VA did ALL of these:
+   - Introduced with their own name (e.g., "This is Sarah")
+   - Said the office name clearly (${office})
+   - Used friendly, professional tone
+   - Said "How can I help you?" or similar
+   
+   Give 8/10 if: Did greeting but missing one element (like "how can I help")
+   Give 6/10 if: Said office name but no personal introduction
+   Give 4/10 if: No office name mentioned
+   Give 0-2/10 if: No greeting at all
+   
+   NOTE: Speech recognition may mishear the office name. If VA clearly attempted to say an office name, give credit.
 
 2. REASON FOR CALL (0-10):
    - Did VA identify why patient called (pain complaint, appointment request)?
    - Did they acknowledge it appropriately?
+   - Did they show empathy/understanding?
 
 3. SCHEDULING & TIME (0-10):
    - Did VA offer specific appointment date/time?
    - Did they confirm the appointment clearly?
-   - Did they ask about patient's time preferences?
+   - Did they ask about patient's time preferences (morning/afternoon, early/late week)?
+   - Did they provide 2+ time options for patient to choose from?
 
 4. PATIENT INFORMATION (0-10):
    - Did VA collect full name?
    - Did VA collect phone number?
    - Did VA collect email address?
+   - Give 10/10 only if ALL THREE were collected
 
 5. REFERRAL SOURCE (0-10):
    - Did VA ask how patient heard about the office?
-   - Did they note the response?
+   - Did they note/acknowledge the response?
 
 6. FEE EXPLANATION (0-10):
-   - Did VA mention the first visit cost (should be $${cost})?
+   - Did VA mention the first visit cost ($${cost})?
    - Did VA explain what's included (consultation, exam, adjustment)?
-   - Clear and confident explanation?
+   - Was explanation clear and confident (not vague or uncertain)?
+   - Did VA handle cost questions professionally?
 
 7. PROFESSIONAL CLOSING (0-10):
-   - Did VA summarize the appointment details?
-   - Did VA end warmly and professionally?
+   - Did VA summarize the appointment details (date, time, location)?
+   - Did VA mention what to bring (insurance card, previous records)?
+   - Did VA mention next steps (intake form, arrival time)?
+   - Did they end warmly and professionally?
    - Did they say goodbye appropriately?
 
-BONUS POINTS (0-30):
-- Natural conversational flow
-- Handling questions smoothly
-- Professional tone throughout
-- No awkward pauses or confusion
-- Personalization and warmth
+BONUS POINTS (0-30) - Award points for excellence in these areas:
+
+Communication Excellence (10 points max):
+- Natural conversational flow (not robotic) = 3 points
+- No awkward pauses or dead air = 2 points
+- Appropriate speaking pace (not too fast/slow) = 2 points
+- Active listening (responding to what patient said) = 3 points
+
+Professionalism (10 points max):
+- Warm, friendly tone throughout = 3 points
+- Patient never had to repeat themselves = 2 points
+- No "ums", "uhs", or filler words = 2 points
+- Sounded confident and knowledgeable = 3 points
+
+Problem Solving (10 points max):
+- Answered patient questions smoothly = 4 points
+- Handled objections or concerns well = 3 points
+- Made patient feel heard and valued = 3 points
+
+CRITICAL SCORING INSTRUCTIONS:
+1. Add all 7 checkpoint scores (max 70 points)
+2. Add bonus points (max 30 points)  
+3. totalScore = checkpoint total + bonus points (max 100)
+
+Example: If checkpoints total 68 and bonus = 25, then totalScore MUST = 93
 
 CRITICAL: Check if patient ACTUALLY BOOKED:
-- If patient said things like "I'll call back", "I'll look elsewhere", "not booking", "call another time" = patientBooked should be FALSE
-- If patient said "I don't know" or "ummm" repeatedly without answering questions = MAJOR PENALTY
-- If VA said "I don't know" 3+ times = patientBooked should be FALSE and VA gets 0 points for those questions
-
-IMPORTANT: Be lenient with office name pronunciation in the greeting. If the VA clearly attempted to say an office name in their greeting (even if the speech recognition transcribed it incorrectly), give them credit for introducing the office.
+- If patient said "I'll call back", "I'll look elsewhere", "not booking", "call another time" = patientBooked FALSE
+- If VA said "I don't know" 3+ times = patientBooked FALSE and VA gets 0 points for those questions
+- Only mark patientBooked = true if patient actually agreed to appointment
 
 Return ONLY valid JSON (no markdown, no code blocks):
 {
@@ -1025,6 +1054,11 @@ Return ONLY valid JSON (no markdown, no code blocks):
         "referral": {"score": 0, "note": ""},
         "feeExplanation": {"score": 0, "note": ""},
         "closing": {"score": 0, "note": ""}
+    },
+    "bonusBreakdown": {
+        "communication": 0,
+        "professionalism": 0,
+        "problemSolving": 0
     },
     "bonus": 0,
     "totalScore": 0,
@@ -1045,7 +1079,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
                         body: JSON.stringify({
                             model: 'gpt-4o-mini',
                             messages: [{ role: 'user', content: evalPrompt }],
-                            max_tokens: 800,
+                            max_tokens: 1000,
                             temperature: 0.3
                         })
                     });
@@ -1573,8 +1607,23 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                     );
                                 })}
                                 
+                                {/* Bonus Points Breakdown */}
                                 <div style={{marginTop: '15px', padding: '15px', background: '#f5f5f5', borderRadius: '10px'}}>
-                                    <strong>Bonus Points:</strong> {scoreData.bonus}/30
+                                    <strong>Bonus Points: {scoreData.bonus}/30</strong>
+                                    
+                                    {scoreData.bonusBreakdown && (
+                                        <div style={{marginTop: '10px', fontSize: '13px'}}>
+                                            <div style={{marginBottom: '5px'}}>
+                                                • Communication Excellence: {scoreData.bonusBreakdown.communication || 0}/10
+                                            </div>
+                                            <div style={{marginBottom: '5px'}}>
+                                                • Professionalism: {scoreData.bonusBreakdown.professionalism || 0}/10
+                                            </div>
+                                            <div style={{marginBottom: '5px'}}>
+                                                • Problem Solving: {scoreData.bonusBreakdown.problemSolving || 0}/10
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 {scoreData.positives?.filter(p => p).length > 0 && (
