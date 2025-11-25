@@ -1001,7 +1001,34 @@ STATUS:
 - Questions properly answered: ${answeredQuestions.length}/${selectedPattern.totalQuestions}
 ${questionStatus}
 
-${questionsProperlyAnswered ? 'You\'ve asked all your questions and VA answered them well. Say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. ${questionsAsked < selectedPattern.totalQuestions ? (selectedPattern.type === 'insurance_triad' && questionsAsked === 2 ? `Ask Question ${questionsAsked + 1}: "${selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName)}"` : `Ask Question ${questionsAsked + 1}: "${questionsAsked < selectedPattern.questions.length ? (selectedPattern.questions[questionsAsked].getQuestion ? selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName) : selectedPattern.questions[questionsAsked].question) : ''}"`) : ''}` : `${questionsAsked < selectedPattern.totalQuestions ? (selectedPattern.type === 'insurance_triad' && questionsAsked === 2 ? `Ask Question ${questionsAsked + 1}: "${selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName)}"` : `Ask Question ${questionsAsked + 1}: "${questionsAsked < selectedPattern.questions.length ? (selectedPattern.questions[questionsAsked].getQuestion ? selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName) : selectedPattern.questions[questionsAsked].question) : ''}"`) : ''}`}
+${(() => {
+    if (questionsProperlyAnswered) {
+        return 'You\'ve asked all your questions and VA answered them well. Say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.';
+    }
+    
+    if (questionsAsked < selectedPattern.totalQuestions) {
+        const nextQuestionIndex = questionsAsked;
+        let nextQuestion = '';
+        
+        if (selectedPattern.type === 'insurance_triad') {
+            if (nextQuestionIndex === 1) {
+                // Q2 uses getQuestion
+                nextQuestion = selectedPattern.questions[1].getQuestion(selectedPattern.insuranceName);
+            } else {
+                // Q1 and Q3 use .question
+                nextQuestion = selectedPattern.questions[nextQuestionIndex].question;
+            }
+        } else {
+            // Other questions just use .question
+            nextQuestion = selectedPattern.questions[nextQuestionIndex].question;
+        }
+        
+        const warning = badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. ` : '';
+        return `${warning}Ask Question ${questionsAsked + 1}: "${nextQuestion}"`;
+    }
+    
+    return '';
+})()}
 
 ${askingWhoReferred ? 'VA is asking WHO referred you. Say ONLY: "Tim"' : ''}
 
@@ -1091,18 +1118,25 @@ ${convoText}
 EVALUATION CRITERIA - Score each 0-10:
 
 1. GREETING & INTRODUCTION (0-10):
-   Give 10/10 ONLY if VA did ALL of these:
-   - Introduced with their own name (e.g., "This is Sarah")
-   - Said the office name clearly (${office})
+   IMPORTANT: Speech recognition often mishears office names. Be VERY LENIENT about office name pronunciation.
+   
+   Give 10/10 if VA did ALL of these:
+   - Introduced with their own name (e.g., "This is Sarah" or "My name is Sarah")
+   - ATTEMPTED to say the office name - even if speech recognition transcribed it incorrectly (e.g., "Brighton Spine" might show as "bread and spine")
    - Used friendly, professional tone
-   - Said "How can I help you?" or similar
+   - Said "How can I help you?" or similar offer to help
    
-   Give 8/10 if: Did greeting but missing one element (like "how can I help")
-   Give 6/10 if: Said office name but no personal introduction
-   Give 4/10 if: No office name mentioned
+   CRITICAL: If you see ANY office-related words in the transcript near the greeting (even if misspelled/misheard), assume VA said the office name correctly. Give them full credit.
+   
+   Examples of speech recognition errors to forgive:
+   - "Brighton Spine" → "bread and spine", "brighton span", "right and spine"
+   - "Smith Chiropractic" → "smith care practice", "smith chiro"  
+   - Any similar sounding words = GIVE CREDIT
+   
+   Give 8/10 if: Did greeting but missing ONE element (like "how can I help")
+   Give 6/10 if: Said their name but NO office name attempted at all
+   Give 4/10 if: No personal name AND no office name
    Give 0-2/10 if: No greeting at all
-   
-   NOTE: Speech recognition may mishear the office name. If VA clearly attempted to say an office name, give credit.
 
 2. REASON FOR CALL (0-10):
    - Did VA identify why patient called (pain complaint, appointment request)?
@@ -1126,10 +1160,27 @@ EVALUATION CRITERIA - Score each 0-10:
    - Did they note/acknowledge the response?
 
 6. FEE EXPLANATION (0-10):
-   - Did VA mention the first visit cost ($${cost})?
-   - Did VA explain what's included (consultation, exam, adjustment)?
-   - Was explanation clear and confident (not vague or uncertain)?
-   - Did VA handle cost questions professionally?
+   CRITICAL: The correct explanation is "consultation, examination, and 1 free adjustment"
+   
+   Give 10/10 if VA mentions ALL THREE:
+   - Consultation (or "consult")
+   - Examination (or "exam")  
+   - Adjustment (or "adjustment")
+   AND mentions the price ($${cost})
+   
+   Give 8/10 if VA mentions:
+   - The price AND 2 out of 3 items (e.g., "consultation and exam" but forgot adjustment)
+   
+   Give 5/10 if VA is vague:
+   - "We'll go over everything on your first visit"
+   - "We'll discuss what's included"
+   - No specific details given
+   
+   Give 3/10 if VA only gives:
+   - The price without any explanation of what's included
+   
+   Give 0-2/10 if VA:
+   - Gives wrong price or provides no information at all
 
 7. PROFESSIONAL CLOSING (0-10):
    - Did VA summarize the appointment details (date, time, location)?
