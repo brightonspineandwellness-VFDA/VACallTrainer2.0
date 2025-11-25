@@ -155,15 +155,20 @@
         const { useState, useEffect, useRef } = React;
 
         // INDIVIDUAL PASSWORD SYSTEM
-        // Add new VA passwords here in the format: "password": "VA Name"
+        // Add new VA passwords here
+        // Admin can view all call logs, VAs can only see their own
         const AUTHORIZED_USERS = {
-            "VFDA2025": "Demo User",
-            "VFDA-SARAH-2025": "Sarah Johnson",
-            "VFDA-MIKE-2025": "Mike Davis",
-            "VFDA-EMMA-2025": "Emma Wilson",
-            "VFDA-ALEX-2025": "Alex Rodriguez",
+            // ADMIN ACCESS - Use this to view all VA call logs
+            "VFDA-ADMIN-2025": { name: "Admin", role: "admin" },
+            
+            // VA ACCOUNTS
+            "VFDA2025": { name: "Demo User", role: "va" },
+            "VFDA-SARAH-2025": { name: "Sarah Johnson", role: "va" },
+            "VFDA-MIKE-2025": { name: "Mike Davis", role: "va" },
+            "VFDA-EMMA-2025": { name: "Emma Wilson", role: "va" },
+            "VFDA-ALEX-2025": { name: "Alex Rodriguez", role: "va" },
             // Add more passwords below as needed:
-            // "VFDA-NAME-2025": "Full Name",
+            // "VFDA-NAME-2025": { name: "Full Name", role: "va" },
         };
 
         const STORED_KEY = localStorage.getItem('openai_api_key');
@@ -330,6 +335,8 @@
             const [interimText, setInterimText] = useState('');
             const [callStartTime, setCallStartTime] = useState(null);
             const [callEndTime, setCallEndTime] = useState(null);
+            const [showCallHistory, setShowCallHistory] = useState(false);
+            const [userRole, setUserRole] = useState(sessionStorage.getItem('user_role') || 'va');
 
             // Use REFS for values needed in async callbacks to avoid stale closures
             const conversationRef = useRef([]);
@@ -360,10 +367,13 @@
                 
                 // Check if password exists in authorized users
                 if (AUTHORIZED_USERS[trimmedPassword]) {
-                    const vaNameFromPassword = AUTHORIZED_USERS[trimmedPassword];
+                    const userInfo = AUTHORIZED_USERS[trimmedPassword];
+                    const vaNameFromPassword = userInfo.name;
+                    const userRole = userInfo.role;
                     
                     // Store authentication and VA info
                     sessionStorage.setItem('auth', 'true');
+                    sessionStorage.setItem('user_role', userRole);
                     localStorage.setItem('va_name', vaNameFromPassword);
                     localStorage.setItem('user_password', trimmedPassword);
                     
@@ -375,11 +385,88 @@
                     
                     setCurrentVAName(vaNameFromPassword);
                     setVaName(vaNameFromPassword);
+                    setUserRole(userRole); // Update state
                     setIsAuthenticated(true);
                 } else {
                     setPasswordError('Invalid access code. Please check and try again.');
                     setPasswordInput('');
                 }
+            };
+
+            // CALL LOGGING FUNCTIONS
+            const saveCallLog = (callData) => {
+                const password = localStorage.getItem('user_password');
+                const vaName = localStorage.getItem('va_name');
+                
+                const callLog = {
+                    id: Date.now(),
+                    password: password,
+                    vaName: vaName,
+                    timestamp: new Date().toISOString(),
+                    ...callData
+                };
+                
+                // Get existing logs
+                const existingLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
+                
+                // Add new log
+                existingLogs.push(callLog);
+                
+                // Save back to localStorage
+                localStorage.setItem('call_logs', JSON.stringify(existingLogs));
+                
+                console.log('Call log saved:', callLog);
+            };
+            
+            const getCallLogs = () => {
+                const allLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
+                const password = localStorage.getItem('user_password');
+                const role = sessionStorage.getItem('user_role');
+                
+                // Admin sees all logs
+                if (role === 'admin') {
+                    return allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                }
+                
+                // VAs only see their own logs
+                return allLogs
+                    .filter(log => log.password === password)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            };
+            
+            const deleteCallLog = (logId) => {
+                const allLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
+                const filteredLogs = allLogs.filter(log => log.id !== logId);
+                localStorage.setItem('call_logs', JSON.stringify(filteredLogs));
+            };
+            
+            const exportCallLogs = () => {
+                const logs = getCallLogs();
+                
+                // Create CSV content
+                const headers = 'VA Name,Date,Time,Difficulty,Score,Duration,Patient Booked,Office Name,Doctor Name\n';
+                const rows = logs.map(log => {
+                    const date = new Date(log.timestamp);
+                    const dateStr = date.toLocaleDateString();
+                    const timeStr = date.toLocaleTimeString();
+                    const duration = log.callDuration || 'N/A';
+                    const booked = log.patientBooked ? 'Yes' : 'No';
+                    
+                    return `"${log.vaName}","${dateStr}","${timeStr}","${log.difficulty}","${log.score}","${duration}","${booked}","${log.officeName || 'N/A'}","${log.doctorName || 'N/A'}"`;
+                }).join('\n');
+                
+                const csv = headers + rows;
+                
+                // Download CSV
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `call_logs_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
             };
 
             const saveApiKey = () => {
@@ -1497,6 +1584,19 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 
                 if (evalResult) {
                     setScoreData(evalResult);
+                    
+                    // Save call log
+                    const callDuration = callStartTime ? Math.round((new Date() - new Date(callStartTime)) / 1000) : 0;
+                    saveCallLog({
+                        difficulty: difficultyRef.current,
+                        score: evalResult.totalScore,
+                        patientBooked: evalResult.patientBooked,
+                        callDuration: `${Math.floor(callDuration / 60)}m ${callDuration % 60}s`,
+                        officeName: officeNameRef.current,
+                        doctorName: doctorNameRef.current,
+                        checkpointScores: evalResult.scores,
+                        bonusPoints: evalResult.bonus
+                    });
                 } else {
                     setScoreData({
                         scores: {
@@ -1589,6 +1689,133 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 );
             }
 
+            // CALL HISTORY VIEW
+            if (showCallHistory) {
+                const callLogs = getCallLogs();
+                const role = sessionStorage.getItem('user_role');
+                
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>📊 Call History</h1>
+                            <p>{role === 'admin' ? 'All VAs - Admin View' : `${currentVAName}'s Practice Calls`}</p>
+                        </div>
+                        <div className="content">
+                            <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+                                <button 
+                                    className="start-btn" 
+                                    onClick={() => setShowCallHistory(false)}
+                                    style={{flex: 1, background: '#757575'}}
+                                >
+                                    ← Back to Training
+                                </button>
+                                {callLogs.length > 0 && (
+                                    <button 
+                                        className="start-btn" 
+                                        onClick={exportCallLogs}
+                                        style={{flex: 1, background: '#4caf50'}}
+                                    >
+                                        📥 Export CSV
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {callLogs.length === 0 ? (
+                                <div style={{textAlign: 'center', padding: '40px', background: '#f5f5f5', borderRadius: '10px'}}>
+                                    <p style={{fontSize: '18px', marginBottom: '10px'}}>📭 No call history yet</p>
+                                    <p style={{color: '#666'}}>Complete your first practice call to see your history here!</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{marginBottom: '20px', padding: '15px', background: '#e3f2fd', borderRadius: '10px'}}>
+                                        <strong>Total Calls:</strong> {callLogs.length} | <strong>Average Score:</strong> {(callLogs.reduce((sum, log) => sum + log.score, 0) / callLogs.length).toFixed(1)}/100
+                                    </div>
+                                    
+                                    <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+                                        {callLogs.map((log, index) => {
+                                            const date = new Date(log.timestamp);
+                                            const passed = log.score >= 70;
+                                            
+                                            return (
+                                                <div key={log.id} style={{
+                                                    padding: '20px',
+                                                    background: 'white',
+                                                    borderRadius: '10px',
+                                                    border: `2px solid ${passed ? '#4caf50' : '#ff9800'}`,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                                }}>
+                                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px'}}>
+                                                        <div>
+                                                            <div style={{fontSize: '18px', fontWeight: 'bold', marginBottom: '5px'}}>
+                                                                {passed ? '✅' : '⚠️'} Call #{callLogs.length - index}
+                                                            </div>
+                                                            {role === 'admin' && (
+                                                                <div style={{fontSize: '14px', color: '#666', marginBottom: '5px'}}>
+                                                                    👤 {log.vaName}
+                                                                </div>
+                                                            )}
+                                                            <div style={{fontSize: '13px', color: '#666'}}>
+                                                                📅 {date.toLocaleDateString()} {date.toLocaleTimeString()}
+                                                            </div>
+                                                        </div>
+                                                        <div style={{
+                                                            fontSize: '28px',
+                                                            fontWeight: 'bold',
+                                                            color: passed ? '#4caf50' : '#ff9800'
+                                                        }}>
+                                                            {log.score}/100
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '15px', fontSize: '13px'}}>
+                                                        <div>
+                                                            <strong>Mode:</strong> {log.difficulty === 'easy' ? '😊 Easy' : '🤔 Challenging'}
+                                                        </div>
+                                                        <div>
+                                                            <strong>Duration:</strong> {log.callDuration}
+                                                        </div>
+                                                        <div>
+                                                            <strong>Booked:</strong> {log.patientBooked ? '✅ Yes' : '❌ No'}
+                                                        </div>
+                                                        <div>
+                                                            <strong>Office:</strong> {log.officeName || 'N/A'}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {role === 'admin' && (
+                                                        <button 
+                                                            onClick={() => {
+                                                                if (confirm('Delete this call log?')) {
+                                                                    deleteCallLog(log.id);
+                                                                    setShowCallHistory(false);
+                                                                    setTimeout(() => setShowCallHistory(true), 10);
+                                                                }
+                                                            }}
+                                                            style={{
+                                                                marginTop: '10px',
+                                                                padding: '8px 15px',
+                                                                background: '#f44336',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '5px',
+                                                                cursor: 'pointer',
+                                                                fontSize: '12px'
+                                                            }}
+                                                        >
+                                                            🗑️ Delete
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
+
             // SETUP SCREEN
             if (gameState === 'setup') {
                 return (
@@ -1661,6 +1888,15 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                     <div style={{fontSize: '12px'}}>Asks 2-3 random questions, then books</div>
                                 </div>
                             </div>
+                            
+                            <button 
+                                className="start-btn" 
+                                onClick={() => setShowCallHistory(true)}
+                                style={{marginBottom: '15px', background: '#2196F3'}}
+                            >
+                                📊 View Call History
+                            </button>
+                            
                             <button className="start-btn" onClick={startCall} disabled={!canStart}>
                                 {canStart ? 'Start Call' : 'Fill in all fields'}
                             </button>
