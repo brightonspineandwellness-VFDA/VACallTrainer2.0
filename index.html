@@ -1349,7 +1349,22 @@ Return ONLY valid JSON (no markdown, no code blocks):
                     const data = await response.json();
                     let content = data.choices[0].message.content.trim();
                     content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                    return JSON.parse(content);
+                    
+                    const evalResult = JSON.parse(content);
+                    
+                    // CRITICAL: Recalculate totalScore to ensure correct math
+                    // Sometimes AI doesn't add correctly, so we force it
+                    const checkpointTotal = Object.values(evalResult.scores).reduce((sum, item) => sum + item.score, 0);
+                    const bonusTotal = evalResult.bonus || 0;
+                    evalResult.totalScore = checkpointTotal + bonusTotal;
+                    
+                    console.log('=== SCORE VERIFICATION ===');
+                    console.log('Checkpoint Total:', checkpointTotal);
+                    console.log('Bonus Total:', bonusTotal);
+                    console.log('Total Score (Recalculated):', evalResult.totalScore);
+                    console.log('==========================');
+                    
+                    return evalResult;
                 } catch (error) {
                     console.error('Eval error:', error);
                     return null;
