@@ -163,7 +163,6 @@
             "VFDA-EMMA-2025": "Emma Wilson",
             "VFDA-ALEX-2025": "Alex Rodriguez",
             "VFDA-MELLE-2025": "Melle Antoiniette Puyot",
-            "VFDA-MATT-2025": "Matthew Herba",
             // Add more passwords below as needed:
             // "VFDA-NAME-2025": "Full Name",
         };
@@ -584,8 +583,24 @@ Pick one response style randomly. Say nothing else.`;
                     );
                     
                     const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
+                    
                     // Check if VA is asking for referral follow-up (who referred you)
-                    const askingWhoReferred = (lastVAMessage.includes('who') && (vaText.includes('friend') || vaText.includes('a friend'))) || lastVAMessage.includes('who referred') || lastVAMessage.includes('what is their name') || lastVAMessage.includes('friend\'s name');
+                    // First check if patient already said "friend" in any previous message
+                    const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
+                    const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
+                    
+                    // Then check if VA is now asking WHO that friend is
+                    const askingWhoReferred = patientSaidFriend && (
+                        lastVAMessage.includes('who') || 
+                        lastVAMessage.includes('who referred') || 
+                        lastVAMessage.includes('what is their name') || 
+                        lastVAMessage.includes('friend\'s name') ||
+                        lastVAMessage.includes('name of your friend') ||
+                        lastVAMessage.includes('who can we thank') ||
+                        lastVAMessage.includes('thank for') ||
+                        lastVAMessage.includes('which friend')
+                    );
+                    
                     // Only trigger general availability if NOT asking about specific times or choices
                     const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
 
@@ -882,8 +897,16 @@ Pick one response style randomly. Say nothing else.`;
                         const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
                         
                         // Check if VA is asking for referral follow-up (who referred you)
-                        const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
-                        const askingWhoReferred = patientSaidFriend && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend') || lastVAMessage.includes('friend\'s name'));
+                        const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
+                        const askingWhoReferred = patientSaidGoogle && (
+                            lastVAMessage.includes('who') || 
+                            lastVAMessage.includes('who referred') ||
+                            lastVAMessage.includes('name of') || 
+                            lastVAMessage.includes('which friend') || 
+                            lastVAMessage.includes('friend\'s name') ||
+                            lastVAMessage.includes('who can we thank') ||
+                            lastVAMessage.includes('thank for')
+                        );
                         
                         // Only trigger general availability if NOT asking about specific times or choices
                         const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
@@ -943,8 +966,16 @@ Give a short 1-2 sentence response. Be friendly and cooperative.`;
                     ).filter(s => s).join('\n');
                     
                     // Check if VA is asking for referral follow-up
-                    const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
-                    const askingWhoReferred = patientSaidFriend && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend') || lastVAMessage.includes('friend\'s name'));
+                    const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
+                    const askingWhoReferred = patientSaidGoogle && (
+                        lastVAMessage.includes('who') || 
+                        lastVAMessage.includes('who referred') ||
+                        lastVAMessage.includes('name of') || 
+                        lastVAMessage.includes('which friend') ||
+                        lastVAMessage.includes('friend\'s name') ||
+                        lastVAMessage.includes('who can we thank') ||
+                        lastVAMessage.includes('thank for')
+                    );
 
                     return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have ${selectedPattern.type === 'insurance_triad' ? 'insurance questions' : 'a few questions'} first.
 
@@ -954,7 +985,7 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your email: mike.davis@email.com
 - Your problem: neck pain and stiffness
 - Your availability: flexible, any day works
-- How you heard about them: a friend recommended you
+- How you heard about them: found you on Google
 - Friend who referred you (if asked): Tim
 ${selectedPattern.type === 'insurance_triad' ? `- Your insurance: ${selectedPattern.insuranceName}` : ''}
 
