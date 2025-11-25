@@ -156,19 +156,52 @@
 
         // INDIVIDUAL PASSWORD SYSTEM
         // Add new VA passwords here
-        // Admin can view all call logs, VAs can only see their own
+        // Roles: admin (see all), doctor (see only their office), va (see only themselves)
         const AUTHORIZED_USERS = {
-            // ADMIN ACCESS - Use this to view all VA call logs
-            "VFDA-ADMIN-2025": { name: "Admin", role: "admin" },
+            // ADMIN ACCESS - Sees all VAs from all offices
+            "VFDA-ADMIN-2025": { 
+                name: "Admin", 
+                role: "admin" 
+            },
             
-            // VA ACCOUNTS
-            "VFDA2025": { name: "Demo User", role: "va" },
-            "VFDA-SARAH-2025": { name: "Sarah Johnson", role: "va" },
-            "VFDA-MIKE-2025": { name: "Mike Davis", role: "va" },
-            "VFDA-EMMA-2025": { name: "Emma Wilson", role: "va" },
-            "VFDA-ALEX-2025": { name: "Alex Rodriguez", role: "va" },
-            // Add more passwords below as needed:
-            // "VFDA-NAME-2025": { name: "Full Name", role: "va" },
+            // DOCTOR ACCOUNTS - See only their own office's VAs
+            "VFDA-DRSMITH-2025": { 
+                name: "Dr. Smith", 
+                role: "doctor",
+                office: "smith"
+            },
+            
+            // "VFDA-DRMATT-2025": { name: "Dr. Matt", role: "doctor", office: "brighton spine and wellness" }
+            // "VFDA-DRJONES-2025": { name: "Dr. Jones", role: "doctor", office: "jones" },
+            
+            // VA ACCOUNTS - Assign to offices
+            "VFDA2025": { 
+                name: "Demo User", 
+                role: "va",
+                office: "demo"
+            },
+            "VFDA-SARAH-2025": { 
+                name: "Sarah Johnson", 
+                role: "va",
+                office: "smith"  // Dr. Smith's office
+            },
+            "VFDA-MIKE-2025": { 
+                name: "Mike Davis", 
+                role: "va",
+                office: "smith"  // Dr. Smith's office
+            },
+            "VFDA-EMMA-2025": { 
+                name: "Emma Wilson", 
+                role: "va",
+                office: "demo"
+            },
+            "VFDA-ALEX-2025": { 
+                name: "Alex Rodriguez", 
+                role: "doctor",
+                office: "alex"
+            },
+            // Add more VA passwords below:
+            // "VFDA-MELLE-2025": { name: "Melle Antoiniette Puyot", role: "va", office: "brighton spine and wellness" },
         };
 
         const STORED_KEY = localStorage.getItem('openai_api_key');
@@ -370,10 +403,12 @@
                     const userInfo = AUTHORIZED_USERS[trimmedPassword];
                     const vaNameFromPassword = userInfo.name;
                     const userRole = userInfo.role;
+                    const userOffice = userInfo.office || 'none';
                     
-                    // Store authentication and VA info
+                    // Store authentication and user info
                     sessionStorage.setItem('auth', 'true');
                     sessionStorage.setItem('user_role', userRole);
+                    sessionStorage.setItem('user_office', userOffice);
                     localStorage.setItem('va_name', vaNameFromPassword);
                     localStorage.setItem('user_password', trimmedPassword);
                     
@@ -398,10 +433,15 @@
                 const password = localStorage.getItem('user_password');
                 const vaName = localStorage.getItem('va_name');
                 
+                // Get office from AUTHORIZED_USERS
+                const userInfo = AUTHORIZED_USERS[password];
+                const office = userInfo ? userInfo.office : 'none';
+                
                 const callLog = {
                     id: Date.now(),
                     password: password,
                     vaName: vaName,
+                    office: office,  // Store office for filtering
                     timestamp: new Date().toISOString(),
                     ...callData
                 };
@@ -422,10 +462,18 @@
                 const allLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
                 const password = localStorage.getItem('user_password');
                 const role = sessionStorage.getItem('user_role');
+                const userOffice = sessionStorage.getItem('user_office');
                 
                 // Admin sees all logs
                 if (role === 'admin') {
                     return allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                }
+                
+                // Doctor sees only their office's logs
+                if (role === 'doctor') {
+                    return allLogs
+                        .filter(log => log.office === userOffice)
+                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 }
                 
                 // VAs only see their own logs
@@ -1713,7 +1761,11 @@ Return ONLY valid JSON (no markdown, no code blocks):
                     <div className="container">
                         <div className="header">
                             <h1>📊 Call History</h1>
-                            <p>{role === 'admin' ? 'All VAs - Admin View' : `${currentVAName}'s Practice Calls`}</p>
+                            <p>{
+                                role === 'admin' ? 'All VAs - Admin View' : 
+                                role === 'doctor' ? `${currentVAName}'s Office - Team Performance` :
+                                `${currentVAName}'s Practice Calls`
+                            }</p>
                         </div>
                         <div className="content">
                             <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
@@ -1764,7 +1816,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                                             <div style={{fontSize: '18px', fontWeight: 'bold', marginBottom: '5px'}}>
                                                                 {passed ? '✅' : '⚠️'} Call #{callLogs.length - index}
                                                             </div>
-                                                            {role === 'admin' && (
+                                                            {(role === 'admin' || role === 'doctor') && (
                                                                 <div style={{fontSize: '14px', color: '#666', marginBottom: '5px'}}>
                                                                     👤 {log.vaName}
                                                                 </div>
