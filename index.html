@@ -193,17 +193,39 @@
             }
         };
 
-        // Expanded question pool for challenging mode
-        const CHALLENGING_QUESTIONS = [
+        // Insurance companies for random selection
+        const INSURANCE_COMPANIES = [
+            'Blue Cross Blue Shield',
+            'Aetna',
+            'UnitedHealthcare',
+            'Cigna'
+        ];
+
+        // Insurance Triad - Always asked as a sequence of 3
+        const INSURANCE_TRIAD = [
+            {
+                id: 'insurance_q1',
+                question: 'Do you take insurance?',
+                checkAnswer: (vaText) => vaText.includes('program') || vaText.includes('work with') || vaText.includes('all') || vaText.includes('accept') || vaText.includes('yes')
+            },
+            {
+                id: 'insurance_q2',
+                getQuestion: (insuranceName) => `I just want to make sure my ${insuranceName} insurance is covered`,
+                checkAnswer: (vaText) => vaText.includes('patient') || vaText.includes('care') || vaText.includes('receiving') || vaText.includes('work with') || vaText.includes('covered')
+            },
+            {
+                id: 'insurance_q3',
+                question: "Well, doesn't my insurance cover anything?",
+                checkAnswer: (vaText) => vaText.includes('bring') || vaText.includes('card') || vaText.includes('verify') || vaText.includes('coverage') || vaText.includes('first visit')
+            }
+        ];
+
+        // Other questions for challenging mode
+        const OTHER_QUESTIONS = [
             {
                 id: 'cost',
                 question: 'How much does the first visit cost?',
                 checkAnswer: (vaText) => vaText.includes('$') || vaText.includes('dollar') || vaText.includes('49') || vaText.includes('59') || vaText.match(/\d+/) || vaText.includes('varies') || vaText.includes('discuss')
-            },
-            {
-                id: 'insurance',
-                question: 'Do you accept Blue Cross Blue Shield insurance?',
-                checkAnswer: (vaText) => vaText.includes('insurance') || vaText.includes('blue cross') || vaText.includes('programs') || vaText.includes('work with') || vaText.includes('bring your card') || vaText.includes('verify')
             },
             {
                 id: 'duration',
@@ -219,29 +241,43 @@
                 id: 'includes',
                 question: 'What does the first visit include?',
                 checkAnswer: (vaText) => vaText.includes('consultation') || vaText.includes('exam') || vaText.includes('adjustment') || vaText.includes('include')
-            },
-            {
-                id: 'thisweek',
-                question: 'Can I get an appointment this week?',
-                checkAnswer: (vaText) => vaText.includes('week') || vaText.includes('monday') || vaText.includes('tuesday') || vaText.includes('available') || vaText.includes('schedule')
-            },
-            {
-                id: 'decompression',
-                question: 'Do you do decompression therapy for neck pain?',
-                checkAnswer: (vaText) => vaText.includes('decompression') || vaText.includes('therapy') || vaText.includes('doctor') || vaText.includes('appointment') || vaText.includes('discuss')
-            },
-            {
-                id: 'laser',
-                question: 'Do you do laser therapy?',
-                checkAnswer: (vaText) => vaText.includes('laser') || vaText.includes('therapy') || vaText.includes('doctor') || vaText.includes('appointment') || vaText.includes('discuss')
             }
         ];
 
         // Helper function to select random questions for challenging mode
+        // Pattern 1: Insurance Triad (3 questions)
+        // Pattern 2: 1 Random Other Question
+        // Pattern 3: 1-2 Random Other Questions
         function selectRandomQuestions() {
-            const numQuestions = Math.random() < 0.5 ? 2 : 3; // Random 2 or 3
-            const shuffled = [...CHALLENGING_QUESTIONS].sort(() => Math.random() - 0.5);
-            return shuffled.slice(0, numQuestions);
+            const pattern = Math.floor(Math.random() * 3); // 0, 1, or 2
+            
+            if (pattern === 0) {
+                // Pattern 1: Insurance Triad
+                const randomInsurance = INSURANCE_COMPANIES[Math.floor(Math.random() * INSURANCE_COMPANIES.length)];
+                return {
+                    type: 'insurance_triad',
+                    insuranceName: randomInsurance,
+                    questions: INSURANCE_TRIAD,
+                    totalQuestions: 3
+                };
+            } else if (pattern === 1) {
+                // Pattern 2: 1 Random Other Question
+                const shuffled = [...OTHER_QUESTIONS].sort(() => Math.random() - 0.5);
+                return {
+                    type: 'other_questions',
+                    questions: [shuffled[0]],
+                    totalQuestions: 1
+                };
+            } else {
+                // Pattern 3: 1-2 Random Other Questions
+                const numQuestions = Math.random() < 0.5 ? 1 : 2;
+                const shuffled = [...OTHER_QUESTIONS].sort(() => Math.random() - 0.5);
+                return {
+                    type: 'other_questions',
+                    questions: shuffled.slice(0, numQuestions),
+                    totalQuestions: numQuestions
+                };
+            }
         }
 
         // Helper function to check if VA response indicates call ending
@@ -548,6 +584,8 @@ Pick one response style randomly. Say nothing else.`;
                     );
                     
                     const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
+                    // Check if VA is asking for referral follow-up (who referred you)
+                    const askingWhoReferred = (lastVAMessage.includes('who') && (vaText.includes('friend') || vaText.includes('a friend'))) || lastVAMessage.includes('who referred') || lastVAMessage.includes('what is their name') || lastVAMessage.includes('friend\'s name');
                     // Only trigger general availability if NOT asking about specific times or choices
                     const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
 
@@ -560,6 +598,7 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your problem: back pain for about 2 weeks
 - Your availability: this week, mornings are best
 - How you heard about them: a friend recommended you
+- Friend's name (if asked): Tim
 
 CONVERSATION SO FAR:
 ${convoText}
@@ -572,8 +611,9 @@ ${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. S
 ${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "sarah.johnson@email.com"' : ''}
 ${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-867-5309"' : ''}
 ${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "A friend recommended you"' : ''}
+${askingWhoReferred ? '- VA is asking WHO your friend is. Say ONLY: "Tim"' : ''}
 ${askingForAvailability ? '- VA is asking about general AVAILABILITY. Say ONLY: "This week, mornings are best"' : ''}
-${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect"\n- If they explain fees or what\'s included: Say "Okay, sounds good"\n- If they inform you about sending forms/emails: Say "Okay, thank you" or "Sounds good"\n- Otherwise, respond naturally and cooperatively to what they said' : ''}
+${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingWhoReferred && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect"\n- If they explain fees or what\'s included: Say "Okay, sounds good"\n- If they inform you about sending forms/emails: Say "Okay, thank you" or "Sounds good"\n- Otherwise, respond naturally and cooperatively to what they said' : ''}
 
 CRITICAL: Only give your email/phone when VA is ASKING for it, not when they're just mentioning sending something to it.
 DO NOT say your name unless they specifically ask for your name.
@@ -586,16 +626,26 @@ Give a short 1-2 sentence response. Be friendly and cooperative. Do not add labe
 
                 // ==================== CHALLENGING MODE ====================
                 if (diff === 'challenging') {
-                    const selectedQuestions = selectedQuestionsRef.current;
+                    const selectedPattern = selectedQuestionsRef.current;
                     
                     if (isFirstResponse) {
-                        // First question is now random from the selected questions
-                        const firstQuestion = selectedQuestions[0];
-                        return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
+                        // First question depends on pattern type
+                        if (selectedPattern.type === 'insurance_triad') {
+                            // Insurance Triad - Start with Q1
+                            return `You are Mike Davis, calling a chiropractic office. You want to book but need some info about insurance first.
+
+The receptionist just answered. Ask your first insurance question.
+
+Say exactly: "Hi, I'd like to schedule an appointment, but first - ${selectedPattern.questions[0].question}"`;
+                        } else {
+                            // Other Questions - Pick first question
+                            const firstQuestion = selectedPattern.questions[0];
+                            return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
 
 The receptionist just answered. Ask your first question.
 
 Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuestion.question}"`;
+                        }
                     }
 
                     // Check what VA has mentioned and how they responded
@@ -671,10 +721,26 @@ Say ONLY that message, nothing else. This ends the call. DO NOT say you're ready
                     }
                     
                     // Check which questions have been answered PROPERLY
-                    const answeredQuestions = selectedQuestions.filter(q => q.checkAnswer(vaText));
+                    const selectedPattern = selectedQuestionsRef.current;
+                    let answeredQuestions = [];
+                    
+                    if (selectedPattern.type === 'insurance_triad') {
+                        // Insurance Triad - check all 3 questions
+                        answeredQuestions = selectedPattern.questions.filter(q => {
+                            if (q.id === 'insurance_q2') {
+                                // Q2 uses getQuestion, just check answer
+                                return q.checkAnswer(vaText);
+                            } else {
+                                return q.checkAnswer(vaText);
+                            }
+                        });
+                    } else {
+                        // Other Questions
+                        answeredQuestions = selectedPattern.questions.filter(q => q.checkAnswer(vaText));
+                    }
                     
                     // Questions are only "answered" if VA actually gave good answers (not bad answers)
-                    const questionsProperlyAnswered = answeredQuestions.length >= selectedQuestions.length && badAnswerCount === 0;
+                    const questionsProperlyAnswered = answeredQuestions.length >= selectedPattern.totalQuestions && badAnswerCount < 3;
                     
                     // Check for RED FLAG responses
                     const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no');
@@ -814,6 +880,11 @@ Pick one response style randomly. Say nothing else.`;
                         );
                         
                         const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
+                        
+                        // Check if VA is asking for referral follow-up (who referred you)
+                        const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
+                        const askingWhoReferred = patientSaidFriend && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend') || lastVAMessage.includes('friend\'s name'));
+                        
                         // Only trigger general availability if NOT asking about specific times or choices
                         const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
                         
@@ -824,7 +895,8 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your phone number: 555-234-5678
 - Your email: mike.davis@email.com
 - Your availability: flexible, any day works
-- How you heard about them: found you on Google
+- How you heard about them: a friend recommended you
+- Friend's name (if asked): Tim
 
 CONVERSATION SO FAR:
 ${convoText}
@@ -837,8 +909,9 @@ ${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. S
 ${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "mike.davis@email.com"' : ''}
 ${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-234-5678"' : ''}
 ${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "I found you on Google"' : ''}
+${askingWhoReferred ? '- VA is asking WHO referred you. Say ONLY: "Tim"' : ''}
 ${askingForAvailability ? '- VA is asking about general AVAILABILITY. Say ONLY: "Flexible, any day works"' : ''}
-${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect, I\'ll be there"\n- If they confirm details or inform about sending forms: Say "Perfect, thank you!" or "Sounds good"\n- Otherwise, respond naturally to what they said' : ''}
+${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingWhoReferred && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect, I\'ll be there"\n- If they confirm details or inform about sending forms: Say "Perfect, thank you!" or "Sounds good"\n- Otherwise, respond naturally to what they said' : ''}
 
 CRITICAL: Only give your email/phone when VA is ASKING for it, not when they're just mentioning sending something to it.
 DO NOT say your email/phone when VA is just informing you about sending something.
@@ -850,16 +923,30 @@ Give a short 1-2 sentence response. Be friendly and cooperative.`;
                     }
 
                     // Build list of questions to ask
-                    const questionsToAsk = selectedQuestions.map((q, idx) => 
-                        `${idx + 1}. ${q.question}`
-                    ).join('\n');
+                    let questionsToAsk = '';
+                    if (selectedPattern.type === 'insurance_triad') {
+                        // Insurance Triad - Show all 3 questions with dynamic Q2
+                        const q2Text = selectedPattern.questions[1].getQuestion(selectedPattern.insuranceName);
+                        questionsToAsk = `1. ${selectedPattern.questions[0].question}
+2. ${q2Text}
+3. ${selectedPattern.questions[2].question}`;
+                    } else {
+                        // Other Questions
+                        questionsToAsk = selectedPattern.questions.map((q, idx) => 
+                            `${idx + 1}. ${q.question}`
+                        ).join('\n');
+                    }
 
                     // Build status of answered questions
-                    const questionStatus = selectedQuestions.map((q, idx) => 
+                    const questionStatus = selectedPattern.questions.map((q, idx) => 
                         answeredQuestions.includes(q) ? `✓ Question ${idx + 1} answered` : ''
                     ).filter(s => s).join('\n');
+                    
+                    // Check if VA is asking for referral follow-up
+                    const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
+                    const askingWhoReferred = patientSaidGoogle && (lastVAMessage.includes('who') || lastVAMessage.includes('name of') || lastVAMessage.includes('which friend'));
 
-                    return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have a few quick questions first.
+                    return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have ${selectedPattern.type === 'insurance_triad' ? 'insurance questions' : 'a few questions'} first.
 
 YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your name: Mike Davis
@@ -868,7 +955,8 @@ YOUR PERSONAL INFO (use these EXACT values when asked):
 - Your problem: neck pain and stiffness
 - Your availability: flexible, any day works
 - How you heard about them: found you on Google
-- Your insurance: Blue Cross Blue Shield
+- Friend who referred you (if asked): Tim
+${selectedPattern.type === 'insurance_triad' ? `- Your insurance: ${selectedPattern.insuranceName}` : ''}
 
 CONVERSATION SO FAR:
 ${convoText}
@@ -877,20 +965,26 @@ YOUR QUESTIONS TO ASK (in order):
 ${questionsToAsk}
 
 STATUS:
-- Questions you've asked so far: ${questionsAsked}/${selectedQuestions.length}
+- Questions you've asked so far: ${questionsAsked}/${selectedPattern.totalQuestions}
 - Bad VA responses so far: ${badAnswerCount}/3 ${badAnswerCount >= 3 ? '❌ TOO MANY BAD ANSWERS' : ''}
-- Questions properly answered: ${answeredQuestions.length}/${selectedQuestions.length}
+- Questions properly answered: ${answeredQuestions.length}/${selectedPattern.totalQuestions}
 ${questionStatus}
 
-${questionsProperlyAnswered ? 'You\'ve asked all your questions and VA answered them well. If you asked about appointment availability, you\'re ready to book. Otherwise say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.` : `Ask the NEXT question from your list (Question ${questionsAsked + 1}) if you haven't asked it yet.`}
+${questionsProperlyAnswered ? 'You\'ve asked all your questions and VA answered them well. Say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.' : badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. ${questionsAsked < selectedPattern.totalQuestions ? (selectedPattern.type === 'insurance_triad' && questionsAsked === 2 ? `Ask Question ${questionsAsked + 1}: "${selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName)}"` : `Ask Question ${questionsAsked + 1}: "${questionsAsked < selectedPattern.questions.length ? (selectedPattern.questions[questionsAsked].getQuestion ? selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName) : selectedPattern.questions[questionsAsked].question) : ''}"`) : ''}` : `${questionsAsked < selectedPattern.totalQuestions ? (selectedPattern.type === 'insurance_triad' && questionsAsked === 2 ? `Ask Question ${questionsAsked + 1}: "${selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName)}"` : `Ask Question ${questionsAsked + 1}: "${questionsAsked < selectedPattern.questions.length ? (selectedPattern.questions[questionsAsked].getQuestion ? selectedPattern.questions[questionsAsked].getQuestion(selectedPattern.insuranceName) : selectedPattern.questions[questionsAsked].question) : ''}"`) : ''}`}
+
+${askingWhoReferred ? 'VA is asking WHO referred you. Say ONLY: "Tim"' : ''}
 
 ACCEPTABLE VA ANSWERS:
-- Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
-- Insurance: "We work with all types", "bring your card", or even "we don't take insurance" = ALL GOOD
-- What's included: "Consultation, exam, adjustment" or similar = GOOD
-- In-depth medical questions (decompression, laser): VA redirecting to doctor/booking = GOOD
+${selectedPattern.type === 'insurance_triad' ? `- Q1 (Do you take insurance?): "We have programs that work with all types of insurance" or "Yes, we accept insurance" = GOOD
+- Q2 (Is my insurance covered?): "We have patients with that insurance" or "We work with that insurance" = GOOD  
+- Q3 (What does insurance cover?): "Bring your card and we'll verify" or "We'll check coverage" = GOOD` : `- Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
+- Duration: "30-45 minutes" or similar = GOOD
+- What to bring: "Insurance card, ID, previous records" = GOOD
+- What's included: "Consultation, exam, adjustment" or similar = GOOD`}
 
 DO NOT give all your information at once unless VA specifically asks for it.
+DO NOT repeat information you already gave.
+${askingWhoReferred ? '' : 'If VA asks who referred you, say "Tim".'}
 
 Give a short 1-2 sentence response. Be polite and friendly.`;
                 }
@@ -1221,7 +1315,17 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 // Select random questions for challenging mode
                 if (difficulty === 'challenging') {
                     selectedQuestionsRef.current = selectRandomQuestions();
-                    console.log('Selected questions:', selectedQuestionsRef.current.map(q => q.question));
+                    const pattern = selectedQuestionsRef.current;
+                    console.log('=== CHALLENGING MODE PATTERN ===');
+                    console.log('Type:', pattern.type);
+                    if (pattern.type === 'insurance_triad') {
+                        console.log('Insurance Company:', pattern.insuranceName);
+                        console.log('Questions: Insurance Triad (3 questions)');
+                    } else {
+                        console.log('Questions:', pattern.questions.length, 'random questions');
+                        pattern.questions.forEach((q, i) => console.log(`  ${i+1}. ${q.question}`));
+                    }
+                    console.log('================================');
                 }
                 
                 // Reset
