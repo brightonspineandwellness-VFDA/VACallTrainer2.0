@@ -665,9 +665,13 @@ Pick one randomly. Say nothing else. No additional text.`;
                     if (isFirstResponse) {
                         return `You are Sarah Johnson, calling a chiropractic office to book an appointment for back pain.
 
-The receptionist just answered. Say you want to schedule an appointment.
+The receptionist just greeted you (they might have said the office name and asked how they can help).
 
-Say exactly: "Hi, I'd like to schedule an appointment. I've been having some back pain for about 2 weeks."`;
+IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
+
+Say exactly: "Hi, I'd like to schedule an appointment. I've been having some back pain for about 2 weeks."
+
+Do not say anything else. Do not ask them to repeat. Just give this response.`;
                     }
 
                     // Detect what information VA is REQUESTING (not just mentioning)
@@ -849,17 +853,25 @@ Give a short 1-2 sentence response. Be friendly and cooperative. Do not add labe
                             // Insurance Triad - Start with Q1
                             return `You are Mike Davis, calling a chiropractic office. You want to book but need some info about insurance first.
 
-The receptionist just answered. Ask your first insurance question.
+The receptionist just greeted you (they might have said the office name and asked how they can help).
 
-Say exactly: "Hi, I'd like to schedule an appointment, but first - ${selectedPattern.questions[0].question}"`;
+IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
+
+Say exactly: "Hi, I'd like to schedule an appointment, but first - ${selectedPattern.questions[0].question}"
+
+Do not say anything else. Do not ask them to repeat. Just give this response.`;
                         } else {
                             // Other Questions - Pick first question
                             const firstQuestion = selectedPattern.questions[0];
                             return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
 
-The receptionist just answered. Ask your first question.
+The receptionist just greeted you (they might have said the office name and asked how they can help).
 
-Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuestion.question}"`;
+IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
+
+Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuestion.question}"
+
+Do not say anything else. Do not ask them to repeat. Just give this response.`;
                         }
                     }
 
@@ -1248,7 +1260,19 @@ Give a short 1-2 sentence response. Be polite and friendly.`;
                 }
 
                 // Fallback
-                return `You are a patient calling a chiropractic office. The conversation so far: ${convoText}. Respond naturally in one sentence.`;
+                return `You are a patient calling a chiropractic office. 
+
+CONVERSATION SO FAR:
+${convoText}
+
+IMPORTANT INSTRUCTIONS:
+- Respond naturally and clearly in 1-2 sentences
+- Do NOT ask the receptionist to repeat themselves unless their message was completely unintelligible
+- If you can understand even part of what they said, respond to that
+- Be polite and friendly
+- Move the conversation forward
+
+Respond now:`;
             };
 
             // Call OpenAI API
