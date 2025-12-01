@@ -450,6 +450,7 @@
             const shouldListenRef = useRef(false);
             const isProcessingRef = useRef(false);
             const silenceTimerRef = useRef(null);
+            const forceProcessTimerRef = useRef(null);
             const lastTranscriptRef = useRef('');
             const audioRef = useRef(null);
             const callEndingRef = useRef(false);
@@ -584,7 +585,27 @@
             };
 
             const saveApiKey = () => {
-                localStorage.setItem('openai_api_key', apiKey);
+                const trimmedKey = apiKey.trim();
+                
+                // Validation: Check if this looks like a password instead of an API key
+                if (trimmedKey.startsWith('VFDA-')) {
+                    alert('⚠️ Error: This looks like your access code, not an OpenAI API key!\n\nYour OpenAI API key should start with "sk-" or "sk-proj-"\n\nPlease enter your correct OpenAI API key.');
+                    return;
+                }
+                
+                // Validation: OpenAI keys must start with "sk-"
+                if (!trimmedKey.startsWith('sk-')) {
+                    alert('⚠️ Invalid API Key Format\n\nOpenAI API keys must start with "sk-" or "sk-proj-"\n\nPlease check your API key and try again.');
+                    return;
+                }
+                
+                // Validation: Minimum length check
+                if (trimmedKey.length < 20) {
+                    alert('⚠️ API Key Too Short\n\nOpenAI API keys are usually 50+ characters long.\n\nPlease enter your complete API key.');
+                    return;
+                }
+                
+                localStorage.setItem('openai_api_key', trimmedKey);
                 setShowApiPrompt(false);
             };
 
@@ -1602,21 +1623,43 @@ Return ONLY valid JSON (no markdown, no code blocks):
                             }
                         }
 
-                        if (interim) setInterimText(interim);
+                        if (interim) {
+                            setInterimText(interim);
+                            console.log('Interim text:', interim);
+                            
+                            // BACKUP: If we have interim text but never get final result, force process after 3 seconds
+                            if (forceProcessTimerRef.current) clearTimeout(forceProcessTimerRef.current);
+                            forceProcessTimerRef.current = setTimeout(() => {
+                                if (interim && shouldListenRef.current && !isProcessingRef.current && !lastTranscriptRef.current) {
+                                    console.log('Force processing interim text (browser didn\'t finalize):', interim);
+                                    handleVAResponse(interim);
+                                    setInterimText('');
+                                }
+                            }, 3000);
+                        }
                         
                         if (final && shouldListenRef.current && !isProcessingRef.current) {
+                            console.log('Final text received:', final);
+                            console.log('Should listen?', shouldListenRef.current);
+                            console.log('Is processing?', isProcessingRef.current);
+                            
+                            // Clear backup timer since we got final result
+                            if (forceProcessTimerRef.current) clearTimeout(forceProcessTimerRef.current);
                             if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
                             
                             lastTranscriptRef.current = (lastTranscriptRef.current + ' ' + final).trim();
                             setInterimText(lastTranscriptRef.current);
+                            console.log('Accumulated transcript:', lastTranscriptRef.current);
                             
+                            // Reduced from 1500ms to 800ms for faster response
                             silenceTimerRef.current = setTimeout(() => {
                                 if (lastTranscriptRef.current && shouldListenRef.current) {
+                                    console.log('Processing VA response:', lastTranscriptRef.current);
                                     handleVAResponse(lastTranscriptRef.current);
                                     lastTranscriptRef.current = '';
                                     setInterimText('');
                                 }
-                            }, 1500);
+                            }, 800);
                         }
                     };
 
@@ -1823,15 +1866,23 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🔑 OpenAI API Key</h1>
-                            <p>Enter your API key to use voice features</p>
+                            <h1>🔑 OpenAI API Key Required</h1>
+                            <p>Enter your OpenAI API key to enable voice features</p>
                         </div>
                         <div className="content">
+                            <div style={{padding: '15px', background: '#fff3cd', borderRadius: '10px', marginBottom: '20px', fontSize: '14px'}}>
+                                <strong>⚠️ Important:</strong>
+                                <ul style={{marginTop: '10px', marginLeft: '20px', textAlign: 'left'}}>
+                                    <li>This is your <strong>OpenAI API key</strong>, NOT your access code</li>
+                                    <li>OpenAI API keys start with <strong>"sk-"</strong> or <strong>"sk-proj-"</strong></li>
+                                    <li>Get your API key from: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></li>
+                                </ul>
+                            </div>
                             <div className="form-group">
-                                <label>API Key</label>
+                                <label>OpenAI API Key</label>
                                 <input 
                                     type="password"
-                                    placeholder="sk-..."
+                                    placeholder="sk-proj-..."
                                     value={apiKey}
                                     onChange={(e) => setApiKey(e.target.value)}
                                 />
