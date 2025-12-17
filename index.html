@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Front Desk Academy Trainer</title>
+    <title>Virtual Front Desk Academy - Outbound Call Trainer</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -11,7 +11,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #16a085 0%, #2c3e50 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -24,7 +24,7 @@
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #16a085 0%, #2c3e50 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -49,7 +49,7 @@
         }
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #16a085;
         }
         .form-row {
             display: grid;
@@ -71,11 +71,11 @@
             text-align: center;
             transition: all 0.3s;
         }
-        .difficulty-btn:hover { border-color: #667eea; transform: translateY(-2px); }
-        .difficulty-btn.selected { background: #667eea; color: white; border-color: #667eea; }
+        .difficulty-btn:hover { border-color: #16a085; transform: translateY(-2px); }
+        .difficulty-btn.selected { background: #16a085; color: white; border-color: #16a085; }
         .start-btn {
             width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #16a085 0%, #2c3e50 100%);
             color: white;
             border: none;
             padding: 15px 50px;
@@ -89,7 +89,7 @@
             background: #f5f5f5;
             border-radius: 15px;
             padding: 20px;
-            max-height: 350px;
+            max-height: 500px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -99,7 +99,7 @@
             border-radius: 15px;
             max-width: 80%;
         }
-        .message.staff { background: #667eea; color: white; margin-left: auto; }
+        .message.staff { background: #16a085; color: white; margin-left: auto; }
         .message.patient { background: white; border: 1px solid #ddd; }
         .message.system { background: #ffc107; text-align: center; max-width: 100%; }
         .end-call-btn {
@@ -164,281 +164,164 @@
                 role: "admin" 
             },
             
-            // DOCTOR ACCOUNTS - See only their own office's VAs
-            "VFDA-DRSMITH-2025": { 
-                name: "Dr. Smith", 
-                role: "doctor",
-                office: "smith"
+            // CAMERON FAMILY CHIROPRACTIC
+            "VFDA-CAMERON-DOC-2025": { 
+                name: "Dr. Cameron", 
+                office: "Cameron Family Chiropractic",
+                role: "doctor" 
+            },
+            "VFDA-CAMERON-VA1-2025": { 
+                name: "Cameron VA 1", 
+                office: "Cameron Family Chiropractic",
+                role: "va" 
+            },
+            "VFDA-CAMERON-VA2-2025": { 
+                name: "Cameron VA 2", 
+                office: "Cameron Family Chiropractic",
+                role: "va" 
             },
             
-            "VFDA-DRMATT-2025": { 
-                name: "Dr. Matt", 
-                role: "doctor",
-                office: "brightonspine"
+            // ADVANCED INTEGRATED HEALTH
+            "VFDA-ADVANCED-DOC-2025": { 
+                name: "Dr. Advanced", 
+                office: "Advanced Integrated Health",
+                role: "doctor" 
+            },
+            "VFDA-ADVANCED-VA1-2025": { 
+                name: "Advanced VA 1", 
+                office: "Advanced Integrated Health",
+                role: "va" 
             },
             
-            "VFDA-DRCAMERON-2025": { 
-                name: "Chris Cameron", 
-                role: "doctor",
-                office: "cameron"
+            // NEW HOPE FAMILY WELLNESS
+            "VFDA-NEWHOPE-DOC-2025": { 
+                name: "Dr. New Hope", 
+                office: "New Hope Family Wellness",
+                role: "doctor" 
+            },
+            "VFDA-NEWHOPE-VA1-2025": { 
+                name: "New Hope VA 1", 
+                office: "New Hope Family Wellness",
+                role: "va" 
             },
             
-            "VFDA-DRWHITE-2025": { 
-                name: "Robert White", 
-                role: "doctor",
-                office: "advancedhealth"
+            // PEAK PERFORMANCE CHIROPRACTIC
+            "VFDA-PEAK-DOC-2025": { 
+                name: "Dr. Peak", 
+                office: "Peak Performance Chiropractic",
+                role: "doctor" 
+            },
+            "VFDA-PEAK-VA1-2025": { 
+                name: "Peak VA 1", 
+                office: "Peak Performance Chiropractic",
+                role: "va" 
             },
             
-            "VFDA-DRNOFFSINGER-2025": { 
-                name: "Kevin Noffsinger", 
-                role: "doctor",
-                office: "newhope"
-            },
-            
-            "VFDA-DRLOVELESS-2025": { 
-                name: "Kyle Loveless", 
-                role: "doctor",
-                office: "queencity"
-            },
-            
-            "VFDA-DRSTGERMAIN-2025": { 
-                name: "Patrick St. Germain", 
-                role: "doctor",
-                office: "nextmedfl"
-            },
-
-            "VFDA-DRHELLMAN-2025": { 
-                name: "Ricky Hellman", 
-                role: "doctor",
-                office: "pathway"
-            },
-
-            
-            // Add more doctor passwords here:
-            // "VFDA-DRJONES-2025": { name: "Dr. Jones", role: "doctor", office: "jones" },
-            
-            // VA ACCOUNTS - Assign to offices
-            "VFDA2025": { 
-                name: "Demo User", 
-                role: "va",
-                office: "demo"
-            },
-            "VFDA-SARAH-2025": { 
-                name: "Sarah Johnson", 
-                role: "va",
-                office: "smith"  // Dr. Smith's office
-            },
-            "VFDA-MIKE-2025": { 
-                name: "Mike Davis", 
-                role: "va",
-                office: "smith"  // Dr. Smith's office
-            },
-            "VFDA-EMMA-2025": { 
-                name: "Emma Wilson", 
-                role: "va",
-                office: "demo"
-            },
-            "VFDA-ALEX-2025": { 
-                name: "Alex Rodriguez", 
-                role: "doctor",
-                office: "alex"
-            },
-            "VFDA-MELLE-2025": { 
-                name: "Melle Antoiniette Puyot", 
-                role: "va",
-                office: "brightonspine"
-            },
-            "VFDA-DANIELA-2025": { 
-                name: "Daniela Joy Dumanog", 
-                role: "va",
-                office: "cameron"
-            },
-            "VFDA-EURICA-2025": { 
-                name: "Eurica Daria", 
-                role: "va",
-                office: "advancedhealth"
-            },
-            "VFDA-DIVINE-2025": { 
-                name: "Divine Faith Are", 
-                role: "va",
-                office: "newhope"
-            },
-            "VFDA-NASHREN-2025": { 
-                name: "Nashren Nicomedez", 
-                role: "va",
-                office: "queencity"
-            },
-            "VFDA-MARIANA-2025": { 
-                name: "Mariana Lam", 
-                role: "va",
-                office: "nextmedfl"
-            },
-            "VFDA-GESELLE-2025": { 
-                name: "Geselle Antopia", 
-                role: "va",
-                office: "pathway"
-            },
-            // Add more VA passwords below:
-            // "VFDA-NAME-2025": { name: "Full Name", role: "va", office: "officename" },
+            // Add more offices here as needed
         };
 
-        const STORED_KEY = localStorage.getItem('openai_api_key');
-        const STORED_VA_NAME = localStorage.getItem('va_name');
-        const STORED_PASSWORD = localStorage.getItem('user_password');
-
-        // Patient personas - OUTSIDE component to avoid closure issues
-        const PATIENT_PERSONAS = {
-            easy: {
-                name: 'Sarah Johnson',
-                phone: '555-867-5309',
-                email: 'sarah.johnson@email.com',
-                problem: 'back pain for about 2 weeks',
-                availability: 'this week, mornings are best',
-                referral: 'a friend recommended you'
-            },
-            challenging: {
-                name: 'Mike Davis',
-                phone: '555-234-5678',
-                email: 'mike.davis@email.com',
-                problem: 'neck pain and stiffness',
-                availability: 'flexible, any day works',
-                referral: 'found you on Google',
-                insurance: 'Blue Cross Blue Shield'
-            }
+        // LOCALSTORAGE FUNCTIONS (No external database needed!)
+        const saveCallLog = (callData) => {
+            const password = localStorage.getItem('user_password');
+            const vaName = localStorage.getItem('va_name');
+            
+            // Get office from AUTHORIZED_USERS
+            const userInfo = AUTHORIZED_USERS[password];
+            const office = userInfo ? userInfo.office : 'none';
+            
+            const callLog = {
+                id: Date.now(),
+                password: password,
+                vaName: vaName,
+                office: office,
+                timestamp: new Date().toISOString(),
+                ...callData
+            };
+            
+            // Get existing logs
+            const existingLogs = JSON.parse(localStorage.getItem('outbound_call_logs') || '[]');
+            
+            // Add new log
+            existingLogs.push(callLog);
+            
+            // Save back to localStorage
+            localStorage.setItem('outbound_call_logs', JSON.stringify(existingLogs));
+            
+            console.log('Outbound call log saved:', callLog);
         };
-
-        // Insurance companies for random selection
-        const INSURANCE_COMPANIES = [
-            'Blue Cross Blue Shield',
-            'Aetna',
-            'UnitedHealthcare',
-            'Cigna'
-        ];
-
-        // Insurance Triad - Always asked as a sequence of 3
-        const INSURANCE_TRIAD = [
-            {
-                id: 'insurance_q1',
-                question: 'Do you take insurance?',
-                checkAnswer: (vaText) => vaText.includes('program') || vaText.includes('work with') || vaText.includes('all') || vaText.includes('accept') || vaText.includes('yes')
-            },
-            {
-                id: 'insurance_q2',
-                getQuestion: (insuranceName) => `I just want to make sure my ${insuranceName} insurance is covered`,
-                checkAnswer: (vaText) => vaText.includes('patient') || vaText.includes('care') || vaText.includes('receiving') || vaText.includes('work with') || vaText.includes('covered')
-            },
-            {
-                id: 'insurance_q3',
-                question: "Well, doesn't my insurance cover anything?",
-                checkAnswer: (vaText) => vaText.includes('bring') || vaText.includes('card') || vaText.includes('verify') || vaText.includes('coverage') || vaText.includes('first visit')
-            }
-        ];
-
-        // Other questions for challenging mode
-        const OTHER_QUESTIONS = [
-            {
-                id: 'cost',
-                question: 'How much does the first visit cost?',
-                checkAnswer: (vaText) => vaText.includes('$') || vaText.includes('dollar') || vaText.includes('49') || vaText.includes('59') || vaText.match(/\d+/) || vaText.includes('varies') || vaText.includes('discuss')
-            },
-            {
-                id: 'duration',
-                question: 'How long does the appointment usually take?',
-                checkAnswer: (vaText) => vaText.includes('30') || vaText.includes('45') || vaText.includes('minute') || vaText.includes('hour')
-            },
-            {
-                id: 'bring',
-                question: 'What do I need to bring?',
-                checkAnswer: (vaText) => vaText.includes('bring') || vaText.includes('insurance card') || vaText.includes('x-ray') || vaText.includes('mri') || vaText.includes('id')
-            },
-            {
-                id: 'includes',
-                question: 'What does the first visit include?',
-                checkAnswer: (vaText) => vaText.includes('consultation') || vaText.includes('exam') || vaText.includes('adjustment') || vaText.includes('include')
-            }
-        ];
-
-        // Helper function to select random questions for challenging mode
-        // Pattern 1: Insurance Triad (3 questions)
-        // Pattern 2: 1 Random Other Question
-        // Pattern 3: 1-2 Random Other Questions
-        function selectRandomQuestions() {
-            const pattern = Math.floor(Math.random() * 3); // 0, 1, or 2
+        
+        const getCallLogs = () => {
+            const allLogs = JSON.parse(localStorage.getItem('outbound_call_logs') || '[]');
+            const password = localStorage.getItem('user_password');
+            const role = sessionStorage.getItem('user_role');
+            const userOffice = sessionStorage.getItem('user_office');
             
-            if (pattern === 0) {
-                // Pattern 1: Insurance Triad
-                const randomInsurance = INSURANCE_COMPANIES[Math.floor(Math.random() * INSURANCE_COMPANIES.length)];
-                return {
-                    type: 'insurance_triad',
-                    insuranceName: randomInsurance,
-                    questions: INSURANCE_TRIAD,
-                    totalQuestions: 3
-                };
-            } else if (pattern === 1) {
-                // Pattern 2: 1 Random Other Question
-                const shuffled = [...OTHER_QUESTIONS].sort(() => Math.random() - 0.5);
-                return {
-                    type: 'other_questions',
-                    questions: [shuffled[0]],
-                    totalQuestions: 1
-                };
-            } else {
-                // Pattern 3: 1-2 Random Other Questions
-                const numQuestions = Math.random() < 0.5 ? 1 : 2;
-                const shuffled = [...OTHER_QUESTIONS].sort(() => Math.random() - 0.5);
-                return {
-                    type: 'other_questions',
-                    questions: shuffled.slice(0, numQuestions),
-                    totalQuestions: numQuestions
-                };
+            // Admin sees all logs
+            if (role === 'admin') {
+                return allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             }
-        }
-
-        // Helper function to check if VA response indicates call ending
-        function isGoodbyePhrase(text) {
-            const lower = text.toLowerCase();
-            const goodbyePhrases = [
-                'goodbye',
-                'bye bye',
-                'see you',
-                'have a great day',
-                'have a nice day',
-                'talk to you later',
-                'thank you, bye'
-            ];
             
-            return goodbyePhrases.some(phrase => lower.includes(phrase));
-        }
-
-        // Helper function to generate patient goodbye response
-        function getPatientGoodbye() {
-            const goodbyes = [
-                'Goodbye!',
-                'Thank you!',
-                'Thank you, goodbye!',
-                'Perfect, thank you, bye!',
-                'Great, thank you, bye!',
-                'Sounds good, goodbye!'
-            ];
+            // Doctor sees only their office's logs
+            if (role === 'doctor') {
+                return allLogs
+                    .filter(log => log.office === userOffice)
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            }
             
-            return goodbyes[Math.floor(Math.random() * goodbyes.length)];
-        }
+            // VAs only see their own logs
+            return allLogs
+                .filter(log => log.password === password)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        };
+        
+        const deleteCallLog = (logId) => {
+            const allLogs = JSON.parse(localStorage.getItem('outbound_call_logs') || '[]');
+            const filteredLogs = allLogs.filter(log => log.id !== logId);
+            localStorage.setItem('outbound_call_logs', JSON.stringify(filteredLogs));
+        };
+        
+        const exportCallLogs = () => {
+            const logs = getCallLogs();
+            
+            if (logs.length === 0) {
+                alert('No call logs to export');
+                return;
+            }
+            
+            // Create CSV content
+            const headers = ['Date', 'VA Name', 'Office', 'Doctor', 'Difficulty', 'Score', 'Patient Booked', 'Duration'];
+            const rows = logs.map(log => [
+                new Date(log.timestamp).toLocaleString(),
+                log.vaName || 'N/A',
+                log.officeName || 'N/A',
+                log.doctorName || 'N/A',
+                log.difficulty || 'N/A',
+                log.score || 0,
+                log.patientBooked ? 'Yes' : 'No',
+                log.callDuration || 'N/A'
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+            
+            // Download CSV
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `outbound-call-logs-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        };
 
         function ChiroVoiceTrainer() {
-            const [isAuthenticated, setIsAuthenticated] = useState(sessionStorage.getItem('auth') === 'true');
-            const [passwordInput, setPasswordInput] = useState('');
-            const [passwordError, setPasswordError] = useState('');
-            const [apiKey, setApiKey] = useState(STORED_KEY || '');
-            const [showApiPrompt, setShowApiPrompt] = useState(!STORED_KEY);
-            const [gameState, setGameState] = useState('setup');
-            
-            // Form fields
+            const [gameState, setGameState] = useState('password');
+            const [password, setPassword] = useState('');
+            const [currentUser, setCurrentUser] = useState(null);
             const [officeName, setOfficeName] = useState('');
             const [doctorName, setDoctorName] = useState('');
-            const [firstVisitCost, setFirstVisitCost] = useState('');
-            const [vaName, setVaName] = useState(STORED_VA_NAME || '');
-            const [currentVAName, setCurrentVAName] = useState(STORED_VA_NAME || '');
-            
+            const [vaName, setVaName] = useState('');
             const [difficulty, setDifficulty] = useState('');
             const [messages, setMessages] = useState([]);
             const [currentStatus, setCurrentStatus] = useState('idle');
@@ -446,1590 +329,801 @@
             const [interimText, setInterimText] = useState('');
             const [callStartTime, setCallStartTime] = useState(null);
             const [callEndTime, setCallEndTime] = useState(null);
-            const [showCallHistory, setShowCallHistory] = useState(false);
-            const [userRole, setUserRole] = useState(sessionStorage.getItem('user_role') || 'va');
-
-            // Use REFS for values needed in async callbacks to avoid stale closures
-            const conversationRef = useRef([]);
-            const difficultyRef = useRef('');
-            const apiKeyRef = useRef('');
-            const officeNameRef = useRef('');
-            const doctorNameRef = useRef('');
-            const firstVisitCostRef = useRef('');
-            const selectedQuestionsRef = useRef([]);
             
-            const recognitionRef = useRef(null);
-            const shouldListenRef = useRef(false);
-            const isProcessingRef = useRef(false);
-            const silenceTimerRef = useRef(null);
-            const forceProcessTimerRef = useRef(null);
-            const lastTranscriptRef = useRef('');
-            const audioRef = useRef(null);
-            const callEndingRef = useRef(false);
+            // API Key state - check localStorage reactively
+            const [apiKeyInput, setApiKeyInput] = useState(() => {
+                return localStorage.getItem('openai_api_key') || '';
+            });
+            const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(() => {
+                return !localStorage.getItem('openai_api_key');
+            });
+            
+            const wsRef = useRef(null);
+            const audioContextRef = useRef(null);
+            const conversationHistoryRef = useRef([]);
+            const chatContainerRef = useRef(null);
 
-            // Keep refs in sync with state
-            useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
-            useEffect(() => { apiKeyRef.current = apiKey; }, [apiKey]);
-            useEffect(() => { officeNameRef.current = officeName; }, [officeName]);
-            useEffect(() => { doctorNameRef.current = doctorName; }, [doctorName]);
-            useEffect(() => { firstVisitCostRef.current = firstVisitCost; }, [firstVisitCost]);
+            // Auto-scroll chat to bottom when new messages arrive
+            useEffect(() => {
+                if (chatContainerRef.current) {
+                    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                }
+            }, [messages]);
 
-            const checkPassword = () => {
-                const trimmedPassword = passwordInput.trim();
-                
-                // Check if password exists in authorized users
-                if (AUTHORIZED_USERS[trimmedPassword]) {
-                    const userInfo = AUTHORIZED_USERS[trimmedPassword];
-                    const vaNameFromPassword = userInfo.name;
-                    const userRole = userInfo.role;
-                    const userOffice = userInfo.office || 'none';
-                    
-                    // Store authentication and user info
-                    sessionStorage.setItem('auth', 'true');
-                    sessionStorage.setItem('user_role', userRole);
-                    sessionStorage.setItem('user_office', userOffice);
-                    localStorage.setItem('va_name', vaNameFromPassword);
-                    localStorage.setItem('user_password', trimmedPassword);
-                    
-                    // Track first login time
-                    if (!localStorage.getItem('first_login_' + trimmedPassword)) {
-                        localStorage.setItem('first_login_' + trimmedPassword, new Date().toISOString());
-                    }
-                    localStorage.setItem('last_login_' + trimmedPassword, new Date().toISOString());
-                    
-                    setCurrentVAName(vaNameFromPassword);
-                    setVaName(vaNameFromPassword);
-                    setUserRole(userRole); // Update state
-                    setIsAuthenticated(true);
+            // PASSWORD CHECK
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                const user = AUTHORIZED_USERS[password.toUpperCase()];
+                if (user) {
+                    setCurrentUser(user);
+                    setGameState('setup');
                 } else {
-                    setPasswordError('Invalid access code. Please check and try again.');
-                    setPasswordInput('');
+                    alert('Invalid password. Please try again.');
                 }
             };
 
-            // CALL LOGGING FUNCTIONS
-            const saveCallLog = (callData) => {
-                const password = localStorage.getItem('user_password');
-                const vaName = localStorage.getItem('va_name');
+            // DIFFICULTY CONFIGURATIONS - OUTBOUND FOCUS
+            const difficulties = {
+                easy: {
+                    name: 'Easy',
+                    icon: '😊',
+                    description: 'Cooperative Patient',
+                    // LEAD INFORMATION
+                    leadName: 'Jennifer Rodriguez',
+                    leadPhone: '(555) 234-8901',
+                    leadEmail: 'jennifer.rodriguez@email.com',
+                    healthConcern: 'Lower back pain from desk work (2 weeks)',
+                    formSubmitted: 'Yesterday, 2:30 PM',
+                    personality: `You are Jennifer Rodriguez, a 34-year-old marketing manager who recently submitted an online inquiry form for chiropractic care. You've been experiencing lower back pain from sitting at your desk all day.
+
+PERSONALITY TRAITS:
+- Friendly and cooperative
+- Expecting this follow-up call (you filled out a form yesterday)
+- Ready to book an appointment
+- You have some basic questions but are motivated to get help
+- You respond well to professional, helpful service
+
+YOUR SITUATION:
+- Lower back pain for about 2 weeks, getting worse
+- Works from home, sits 8-10 hours daily
+- Has health insurance but willing to pay out-of-pocket if needed
+- Prefers morning appointments (9-11am)
+- Lives 15 minutes from the office
+- Has never been to a chiropractor before but heard good things
+
+HOW YOU RESPOND:
+- Answer questions openly and honestly
+- Ask 1-2 clarifying questions (cost, insurance, appointment length)
+- Don't create unnecessary objections
+- If offered a specific time, accept it if it works with your schedule
+- Willing to pay initial fee when explained professionally
+- Book the appointment if the VA handles the call well
+
+IMPORTANT: Be realistic but cooperative. Show appreciation for the prompt follow-up call.`,
+                },
+                challenging: {
+                    name: 'Challenging',
+                    icon: '🤔',
+                    description: 'Confused/Hesitant Patient',
+                    // LEAD INFORMATION
+                    leadName: 'Michael Chen',
+                    leadPhone: '(555) 789-4562',
+                    leadEmail: 'mchen.construction@email.com',
+                    healthConcern: 'Chronic neck/shoulder pain from heavy lifting (5+ years)',
+                    formSubmitted: '3 days ago, 11:45 AM',
+                    personality: `You are Michael Chen, a 45-year-old construction supervisor who filled out an online form 3 days ago but has mixed feelings about following through. You have chronic neck and shoulder pain.
+
+PERSONALITY TRAITS:
+- Slightly forgetful (don't immediately recall filling out the form)
+- Busy and distracted - answering during a work break
+- Skeptical about chiropractic care (had a bad experience years ago)
+- Cost-conscious and wants to know exact prices upfront
+- Needs reassurance and clarity
+- Not rude, just cautious and somewhat disorganized
+
+YOUR SITUATION:
+- Chronic neck/shoulder pain from heavy lifting (5+ years)
+- Works long hours, hard to take time off
+- Tried physical therapy before with limited success
+- Filled out form after seeing Facebook ad, but now second-guessing it
+- No insurance coverage for chiropractic
+- Worried about costs and time commitment
+- Prefers afternoon appointments (after 3pm) or Saturdays
+
+YOUR OBJECTIONS & CONCERNS (raise these naturally):
+1. "Wait, what form? Oh yeah... I think I remember that. Been so busy, I forgot."
+2. "How much does this actually cost? I need to know upfront."
+3. "I went to a chiropractor like 10 years ago and they wanted me to come 3 times a week forever. Is this the same thing?"
+4. "I work construction - it's hard to take time off. How long is the appointment?"
+5. "Do you take insurance? I don't think mine covers chiropractic."
+
+HOW YOU RESPOND:
+- Initially unclear about the call's purpose until reminded about the form
+- Ask multiple questions before committing
+- Need specific answers about cost, time, and treatment approach
+- Express skepticism that needs to be addressed
+- If the VA handles objections well and provides clear info, you'll book
+- If rushed or given vague answers, you'll say "Let me think about it and call you back"
+- Willing to pay initial fee IF the value is clearly explained
+- Need reassurance this isn't a high-pressure sales situation
+
+IMPORTANT: Don't be rude, but don't make it easy. The VA must earn your trust and handle your concerns professionally. If they do well, you'll book. If they struggle or seem pushy, you'll decline politely.`,
+                }
+            };
+
+            // SYSTEM PROMPT FOR AI ASSISTANT - OUTBOUND SCENARIO
+            function getSystemPrompt(difficulty) {
+                const persona = difficulties[difficulty];
+                const isJennifer = persona.leadName === 'Jennifer Rodriguez';
+                const patientFirstName = isJennifer ? 'Jennifer' : 'Michael';
+                const patientFullName = isJennifer ? 'JENNIFER RODRIGUEZ' : 'MICHAEL CHEN';
                 
-                // Get office from AUTHORIZED_USERS
-                const userInfo = AUTHORIZED_USERS[password];
-                const office = userInfo ? userInfo.office : 'none';
+                return `🚨🚨🚨 CRITICAL - READ THIS FIRST 🚨🚨🚨
+
+YOU ARE ${patientFullName} - THE PATIENT.
+YOU ARE NOT EMMA. YOU ARE NOT THE VA. YOU ARE NOT THE RECEPTIONIST.
+YOU ARE THE PERSON RECEIVING THE PHONE CALL.
+
+The person speaking to you is the VA calling FROM the chiropractic office.
+YOU are at home/work and YOUR phone is ringing.
+
+🚫 NEVER EVER SAY THESE THINGS:
+❌ "Hi Jennifer, this is Emma calling from..."
+❌ "Hi Michael, this is calling from..."
+❌ "This is [name] calling from Dr. [name]'s office..."
+❌ "We received your inquiry about..."
+❌ "How can I help you today?"
+❌ ANY introduction of a chiropractic office
+❌ ANY greeting as if YOU are calling THEM
+
+✅ ONLY SAY THINGS LIKE THIS WHEN YOUR PHONE RINGS:
+✅ "Hello?" 
+✅ "Hi, this is ${patientFirstName}"
+✅ "Speaking"
+✅ "Yes?"
+
+YOU ARE THE PATIENT. YOUR PHONE RANG. YOU PICKED IT UP. YOU SAY "HELLO?"
+
+${persona.personality}
+
+=== ABSOLUTE RULES ===
+1. YOU ARE ${patientFullName}
+2. YOU ARE RECEIVING A CALL - you did NOT make this call
+3. SPEAK ONLY IN ENGLISH - no Spanish, Portuguese, or other languages
+4. DO NOT offer appointment times - WAIT for VA to suggest times
+5. When VA offers times, pick one: "Monday at 10am works" or "Wednesday is better"
+6. DO NOT volunteer your schedule or suggest your own times
+7. Keep responses SHORT - 1 to 2 sentences maximum
+8. You are at home/work, NOT at the chiropractic office
+
+=== YOUR FIRST RESPONSE MUST BE ===
+When you hear the VA speak for the first time, you MUST say ONLY:
+
+"Hello?"
+
+OR
+
+"Hi, this is ${patientFirstName}"
+
+DO NOT SAY ANYTHING ELSE FIRST. You don't know who's calling yet!
+
+=== IF YOU CATCH YOURSELF SAYING ===
+"Hi Jennifer, this is..." ← STOP! You ARE Jennifer!
+"Hi Michael, this is..." ← STOP! You ARE Michael!
+"This is calling from..." ← STOP! YOU didn't call anyone!
+"We received your inquiry..." ← STOP! You're not the office!
+
+Remember: A VA named Emma/Sarah/whoever is calling YOU. You pick up YOUR phone and say "Hello?"`;
+            }
+
+            // PLAY PHONE RINGING SOUND
+            const playPhoneRing = async () => {
+                console.log('🔔 Playing phone ring sound...');
                 
-                const callLog = {
-                    id: Date.now(),
-                    password: password,
-                    vaName: vaName,
-                    office: office,  // Store office for filtering
-                    timestamp: new Date().toISOString(),
-                    ...callData
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Helper function to play a single beep
+                const playBeep = (startTime, duration, frequency = 480) => {
+                    return new Promise((resolve) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = frequency; // Phone ring frequency
+                        gainNode.gain.value = 0.5; // Louder volume (was 0.3)
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + duration);
+                        
+                        setTimeout(resolve, duration * 1000);
+                    });
                 };
                 
-                // Get existing logs
-                const existingLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
-                
-                // Add new log
-                existingLogs.push(callLog);
-                
-                // Save back to localStorage
-                localStorage.setItem('call_logs', JSON.stringify(existingLogs));
-                
-                console.log('Call log saved:', callLog);
-            };
-            
-            const getCallLogs = () => {
-                const allLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
-                const password = localStorage.getItem('user_password');
-                const role = sessionStorage.getItem('user_role');
-                const userOffice = sessionStorage.getItem('user_office');
-                
-                // Admin sees all logs
-                if (role === 'admin') {
-                    return allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                }
-                
-                // Doctor sees only their office's logs
-                if (role === 'doctor') {
-                    return allLogs
-                        .filter(log => log.office === userOffice)
-                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                }
-                
-                // VAs only see their own logs
-                return allLogs
-                    .filter(log => log.password === password)
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            };
-            
-            const deleteCallLog = (logId) => {
-                const allLogs = JSON.parse(localStorage.getItem('call_logs') || '[]');
-                const filteredLogs = allLogs.filter(log => log.id !== logId);
-                localStorage.setItem('call_logs', JSON.stringify(filteredLogs));
-            };
-            
-            const exportCallLogs = () => {
-                const logs = getCallLogs();
-                
-                // Create CSV content
-                const headers = 'VA Name,Date,Time,Difficulty,Score,Duration,Patient Booked,Office Name,Doctor Name\n';
-                const rows = logs.map(log => {
-                    const date = new Date(log.timestamp);
-                    const dateStr = date.toLocaleDateString();
-                    const timeStr = date.toLocaleTimeString();
-                    const duration = log.callDuration || 'N/A';
-                    const booked = log.patientBooked ? 'Yes' : 'No';
+                // Play 3 rings (each ring = 2 beeps with small gap)
+                for (let ring = 0; ring < 3; ring++) {
+                    console.log(`🔔 Ring ${ring + 1} of 3...`);
                     
-                    return `"${log.vaName}","${dateStr}","${timeStr}","${log.difficulty}","${log.score}","${duration}","${booked}","${log.officeName || 'N/A'}","${log.doctorName || 'N/A'}"`;
-                }).join('\n');
+                    // First beep
+                    await playBeep(0, 0.4, 480);
+                    await new Promise(resolve => setTimeout(resolve, 200)); // 200ms gap
+                    
+                    // Second beep
+                    await playBeep(0, 0.4, 480);
+                    
+                    // Pause between rings (except after last ring)
+                    if (ring < 2) {
+                        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second pause
+                    }
+                }
                 
-                const csv = headers + rows;
-                
-                // Download CSV
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `call_logs_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
+                console.log('✅ Phone ringing complete');
+                await audioContext.close();
             };
 
-            const saveApiKey = () => {
-                const trimmedKey = apiKey.trim();
-                
-                // Validation: Check if this looks like a password instead of an API key
-                if (trimmedKey.startsWith('VFDA-')) {
-                    alert('⚠️ Error: This looks like your access code, not an OpenAI API key!\n\nYour OpenAI API key should start with "sk-" or "sk-proj-"\n\nPlease enter your correct OpenAI API key.');
-                    return;
-                }
-                
-                // Validation: OpenAI keys must start with "sk-"
-                if (!trimmedKey.startsWith('sk-')) {
-                    alert('⚠️ Invalid API Key Format\n\nOpenAI API keys must start with "sk-" or "sk-proj-"\n\nPlease check your API key and try again.');
-                    return;
-                }
-                
-                // Validation: Minimum length check
-                if (trimmedKey.length < 20) {
-                    alert('⚠️ API Key Too Short\n\nOpenAI API keys are usually 50+ characters long.\n\nPlease enter your complete API key.');
-                    return;
-                }
-                
-                localStorage.setItem('openai_api_key', trimmedKey);
-                setShowApiPrompt(false);
-            };
-
-            // Generate phone ring sound
-            const playPhoneRing = async () => {
-                return new Promise((resolve) => {
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const duration = 2; // 2 seconds of ringing
-                    
-                    // Create oscillators for ring tone (440Hz and 480Hz)
-                    const osc1 = audioContext.createOscillator();
-                    const osc2 = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    osc1.connect(gainNode);
-                    osc2.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    osc1.frequency.value = 440;
-                    osc2.frequency.value = 480;
-                    gainNode.gain.value = 0.3;
-                    
-                    // Ring pattern: on for 0.4s, off for 0.2s, repeat
-                    const now = audioContext.currentTime;
-                    for (let i = 0; i < 3; i++) {
-                        const startTime = now + (i * 0.6);
-                        gainNode.gain.setValueAtTime(0.3, startTime);
-                        gainNode.gain.setValueAtTime(0, startTime + 0.4);
-                    }
-                    
-                    osc1.start(now);
-                    osc2.start(now);
-                    osc1.stop(now + duration);
-                    osc2.stop(now + duration);
-                    
-                    setTimeout(() => {
-                        resolve();
-                    }, duration * 1000);
-                });
-            };
-
-            // Build prompt based on difficulty and conversation
-            const buildPrompt = () => {
-                const diff = difficultyRef.current;
-                const conversation = conversationRef.current;
-                const persona = PATIENT_PERSONAS[diff] || PATIENT_PERSONAS.easy;
-                
-                console.log('=== BUILD PROMPT ===');
-                console.log('Difficulty from ref:', diff);
-                console.log('Persona:', persona);
-                
-                // Build conversation text
-                let convoText = conversation.map(m => `${m.speaker}: ${m.text}`).join('\n');
-                
-                // Count patient turns
-                const patientTurns = conversation.filter(m => m.speaker === 'PATIENT').length;
-                const isFirstResponse = patientTurns === 0;
-
-                // Check if VA just said goodbye
-                const lastVAMessage = conversation.length > 0 && conversation[conversation.length - 1].speaker === 'VA' 
-                    ? conversation[conversation.length - 1].text 
-                    : '';
-                
-                if (isGoodbyePhrase(lastVAMessage)) {
-                    return `You are ending a phone call. The receptionist just said goodbye to you.
-
-Respond with ONLY one of these goodbye phrases:
-- "Goodbye!"
-- "Thank you!"
-- "Thank you, goodbye!"
-- "Perfect, thank you, bye!"
-
-Pick one randomly. Say nothing else. No additional text.`;
-                }
-
-                // ==================== EASY MODE ====================
-                if (diff === 'easy') {
-                    if (isFirstResponse) {
-                        return `You are Sarah Johnson, calling a chiropractic office to book an appointment for back pain.
-
-The receptionist just greeted you (they might have said the office name and asked how they can help).
-
-IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
-
-Say exactly: "Hi, I'd like to schedule an appointment. I've been having some back pain for about 2 weeks."
-
-Do not say anything else. Do not ask them to repeat. Just give this response.`;
-                    }
-
-                    // Detect what information VA is REQUESTING (not just mentioning)
-                    // Only respond with info if VA is ASKING for it, not just confirming/informing
-                    const lastVAMessage = conversation.length > 0 && conversation[conversation.length - 1].speaker === 'VA' 
-                        ? conversation[conversation.length - 1].text.toLowerCase()
-                        : '';
-                    
-                    // Check for SPECIFIC TIME SLOTS FIRST (highest priority)
-                    const timeSlotPattern = /(\d{1,2})\s*(am|pm|a\.m|p\.m)/gi;
-                    const timeMatches = lastVAMessage.match(timeSlotPattern);
-                    
-                    if (timeMatches && timeMatches.length >= 2) {
-                        // VA offered multiple time slots - pick one randomly
-                        const randomTime = timeMatches[Math.floor(Math.random() * timeMatches.length)];
-                        return `The VA just offered you multiple appointment times. Pick ONE specific time.
-
-CONVERSATION SO FAR:
-${convoText}
-
-The VA's last message mentioned these times: ${timeMatches.join(', ')}
-
-Pick ONE time randomly and respond with ONLY that choice.
-
-Examples of good responses:
-- "${randomTime} works great for me"
-- "I'll take ${randomTime}"
-- "${randomTime} is perfect"
-- "Let's do ${randomTime}"
-
-Pick one of these response styles randomly. Say nothing else.`;
-                    }
-                    
-                    // Check if VA is offering CHOICES (A or B) - patient should pick one
-                    const askingMorningOrAfternoon = lastVAMessage.includes('morning') && lastVAMessage.includes('afternoon') && lastVAMessage.includes(' or ');
-                    const askingEarlyOrLate = (lastVAMessage.includes('early') || lastVAMessage.includes('earlier')) && (lastVAMessage.includes('late') || lastVAMessage.includes('later')) && lastVAMessage.includes(' or ');
-                    
-                    // If VA is asking patient to choose between time options, handle that
-                    if (askingMorningOrAfternoon) {
-                        const choice = Math.random() < 0.5 ? 'morning' : 'afternoon';
-                        return `The VA is asking if you prefer morning or afternoon.
-
-Pick ONE randomly and respond naturally.
-
-Examples:
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} works better for me"
-- "I'd prefer ${choice}"
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} is best"
-- "Let's do ${choice}"
-
-Pick one response style randomly. Say nothing else.`;
-                    }
-                    
-                    if (askingEarlyOrLate) {
-                        const choice = Math.random() < 0.5 ? 'this week' : 'next week';
-                        return `The VA is asking if you prefer early or later in the week.
-
-Pick ONE randomly and respond naturally.
-
-Examples:
-- "This week works better for me"
-- "I'd prefer earlier this week"
-- "Later in the week is best"
-
-Pick one response style randomly. Say nothing else.`;
-                    }
-                    
-                    const askingForEmail = (
-                        (lastVAMessage.includes('email') && 
-                        (lastVAMessage.includes('can i have') || 
-                         lastVAMessage.includes('what is') || 
-                         lastVAMessage.includes('what\'s') ||
-                         lastVAMessage.includes('whats') ||
-                         lastVAMessage.includes('may i have') ||
-                         lastVAMessage.includes('i need') ||
-                         lastVAMessage.includes('give me') ||
-                         lastVAMessage.includes('send to') ||
-                         lastVAMessage.includes('best email') ||
-                         lastVAMessage.includes('your email'))) &&
-                        !lastVAMessage.includes('sending') &&
-                        !lastVAMessage.includes('send it to') &&
-                        !lastVAMessage.includes('will send') &&
-                        !lastVAMessage.includes('i\'ll send')
-                    );
-                    
-                    const askingForPhone = (
-                        (lastVAMessage.includes('phone') || lastVAMessage.includes('number')) && 
-                        (lastVAMessage.includes('can i have') || 
-                         lastVAMessage.includes('what is') || 
-                         lastVAMessage.includes('what\'s') ||
-                         lastVAMessage.includes('whats') ||
-                         lastVAMessage.includes('may i have') ||
-                         lastVAMessage.includes('i need') ||
-                         lastVAMessage.includes('give me') ||
-                         lastVAMessage.includes('best number') ||
-                         lastVAMessage.includes('your phone') ||
-                         lastVAMessage.includes('your number'))
-                    );
-                    
-                    const askingForName = (
-                        lastVAMessage.includes('name') && 
-                        !askingForEmail && 
-                        !askingForPhone &&
-                        (lastVAMessage.includes('can i have') || 
-                         lastVAMessage.includes('what is') || 
-                         lastVAMessage.includes('what\'s') ||
-                         lastVAMessage.includes('whats') ||
-                         lastVAMessage.includes('may i have') ||
-                         lastVAMessage.includes('i need') ||
-                         lastVAMessage.includes('give me') ||
-                         lastVAMessage.includes('full name') ||
-                         lastVAMessage.includes('your name'))
-                    );
-                    
-                    const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
-                    
-                    // Check if VA is asking for referral follow-up (who referred you)
-                    // First check if patient already said "friend" in any previous message
-                    const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
-                    const patientSaidFriend = patientMessages.some(m => m.text.toLowerCase().includes('friend'));
-                    
-                    // Then check if VA is now asking WHO that friend is
-                    const askingWhoReferred = patientSaidFriend && (
-                        lastVAMessage.includes('who') || 
-                        lastVAMessage.includes('who referred') || 
-                        lastVAMessage.includes('what is their name') || 
-                        lastVAMessage.includes('friend\'s name') ||
-                        lastVAMessage.includes('name of your friend') ||
-                        lastVAMessage.includes('who can we thank') ||
-                        lastVAMessage.includes('thank for') ||
-                        lastVAMessage.includes('which friend')
-                    );
-                    
-                    // Only trigger general availability if NOT asking about specific times or choices
-                    const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
-
-                    return `You are Sarah Johnson, a friendly patient on a phone call with a chiropractic office.
-
-YOUR PERSONAL INFO (use these EXACT values when asked):
-- Your name: Sarah Johnson
-- Your phone number: 555-867-5309
-- Your email: sarah.johnson@email.com
-- Your problem: back pain for about 2 weeks
-- Your availability: this week, mornings are best
-- How you heard about them: a friend recommended you
-- Friend's name (if asked): Tim
-
-CONVERSATION SO FAR:
-${convoText}
-
-VA'S LAST MESSAGE: "${lastVAMessage}"
-
-INSTRUCTIONS - ANSWER WHAT VA ASKED FOR:
-${askingForName ? '- VA is asking for your NAME. Say ONLY: "Sarah Johnson"' : ''}
-${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. Say: "My email is sarah.johnson@email.com and my phone number is 555-867-5309"' : ''}
-${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "sarah.johnson@email.com"' : ''}
-${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-867-5309"' : ''}
-${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "A friend recommended you"' : ''}
-${askingWhoReferred ? '- VA is asking WHO your friend is. Say ONLY: "Tim"' : ''}
-${askingForAvailability ? '- VA is asking about general AVAILABILITY. Say ONLY: "This week, mornings are best"' : ''}
-${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingWhoReferred && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect"\n- If they explain fees or what\'s included: Say "Okay, sounds good"\n- If they inform you about sending forms/emails: Say "Okay, thank you" or "Sounds good"\n- Otherwise, respond naturally and cooperatively to what they said' : ''}
-
-CRITICAL: Only give your email/phone when VA is ASKING for it, not when they're just mentioning sending something to it.
-DO NOT say your name unless they specifically ask for your name.
-DO NOT say your email/phone when VA is just informing you about sending something.
-DO NOT repeat information you already gave.
-ONLY answer the specific question they just asked.
-
-Give a short 1-2 sentence response. Be friendly and cooperative. Do not add labels or quotes.`;
-                }
-
-                // ==================== CHALLENGING MODE ====================
-                if (diff === 'challenging') {
-                    const selectedPattern = selectedQuestionsRef.current;
-                    
-                    if (isFirstResponse) {
-                        // First question depends on pattern type
-                        if (selectedPattern.type === 'insurance_triad') {
-                            // Insurance Triad - Start with Q1
-                            return `You are Mike Davis, calling a chiropractic office. You want to book but need some info about insurance first.
-
-The receptionist just greeted you (they might have said the office name and asked how they can help).
-
-IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
-
-Say exactly: "Hi, I'd like to schedule an appointment, but first - ${selectedPattern.questions[0].question}"
-
-Do not say anything else. Do not ask them to repeat. Just give this response.`;
-                        } else {
-                            // Other Questions - Pick first question
-                            const firstQuestion = selectedPattern.questions[0];
-                            return `You are Mike Davis, calling a chiropractic office. You want to book but need some info first.
-
-The receptionist just greeted you (they might have said the office name and asked how they can help).
-
-IMPORTANT: Respond naturally as if you just heard a professional greeting. Do NOT ask them to repeat.
-
-Say exactly: "Hi, I'd like to schedule an appointment, but first - ${firstQuestion.question}"
-
-Do not say anything else. Do not ask them to repeat. Just give this response.`;
-                        }
-                    }
-
-                    // Check what VA has mentioned and how they responded
-                    const vaMessages = conversation.filter(m => m.speaker === 'VA');
-                    const vaText = vaMessages.map(m => m.text.toLowerCase()).join(' ');
-                    const lastVAMessage = vaMessages.length > 0 ? vaMessages[vaMessages.length - 1].text.toLowerCase() : '';
-                    
-                    // Track questions asked and answered
-                    const patientMessages = conversation.filter(m => m.speaker === 'PATIENT');
-                    const patientText = patientMessages.map(m => m.text.toLowerCase()).join(' ');
-                    const questionsAsked = patientMessages.length;
-                    
-                    // Count BAD VA RESPONSES - CRITICAL CHECK FIRST
-                    let badAnswerCount = 0;
-                    vaMessages.forEach(msg => {
-                        const msgText = msg.text.toLowerCase().trim();
-                        
-                        // Check for "I don't know" type responses - handles ANY apostrophe type
-                        const hasIDont = msgText.includes("i don") || msgText.includes("i wouldn");
-                        const hasDont = msgText.includes("don") && msgText.includes("know");
-                        const hasWouldnt = msgText.includes("wouldn") && msgText.includes("know");
-                        const hasNotSure = msgText.includes("not sure");
-                        
-                        if (hasIDont || hasDont || hasWouldnt || hasNotSure) {
-                            badAnswerCount++;
-                            console.log(`Bad answer detected: "I don't know" in "${msg.text}"`);
-                        }
-                        // Check for passing off to someone else - SEPARATE CHECK
-                        if (msgText.includes("pass you to") || 
-                            msgText.includes("transfer you") || 
-                            msgText.includes("let me ask") ||
-                            msgText.includes("check with") ||
-                            msgText.includes("have to ask") ||
-                            msgText.includes("need to ask")) {
-                            badAnswerCount++;
-                            console.log(`Bad answer detected: "passing off" in "${msg.text}"`);
-                        }
-                        // Check for non-answers (very short responses with just "um", "uh", "umm") - SEPARATE CHECK
-                        if (msgText.length < 30 && 
-                            (msgText === 'um' || 
-                             msgText === 'uh' || 
-                             msgText === 'umm' || 
-                             msgText === 'uhh' ||
-                             msgText.startsWith('um ') ||
-                             msgText.startsWith('uh ') ||
-                             msgText.startsWith('umm ') ||
-                             msgText.startsWith('uhh '))) {
-                            badAnswerCount++;
-                            console.log(`Bad answer detected: "non-answer" in "${msg.text}"`);
-                        }
-                    });
-                    
-                    console.log(`TOTAL BAD ANSWER COUNT: ${badAnswerCount}/3`);
-                    
-                    // CRITICAL: If 3+ bad answers, REFUSE TO BOOK immediately - this must be checked FIRST
-                    if (badAnswerCount >= 3) {
-                        const refusalMessages = [
-                            "Thank you for your time, but I need someone who can answer my questions. I'll call back another time. Goodbye.",
-                            "I appreciate your time, but I need answers to my questions. I'll look for another office. Goodbye.",
-                            "I need someone who knows the answers. I'll call elsewhere. Thank you anyway, goodbye.",
-                            "This isn't working for me. I'll find another chiropractor who can help. Goodbye."
-                        ];
-                        
-                        const randomRefusal = refusalMessages[Math.floor(Math.random() * refusalMessages.length)];
-                        
-                        return `The VA has given ${badAnswerCount} bad answers to your questions. You are frustrated and will NOT book.
-
-CRITICAL: The VA could not answer your questions properly. DO NOT book the appointment.
-
-Say EXACTLY: "${randomRefusal}"
-
-Say ONLY that message, nothing else. This ends the call. DO NOT say you're ready to book.`;
-                    }
-                    
-                    // Check which questions have been answered PROPERLY
-                    // selectedPattern already declared at top of challenging mode section
-                    let answeredQuestions = [];
-                    
-                    if (selectedPattern.type === 'insurance_triad') {
-                        // Insurance Triad - check all 3 questions
-                        answeredQuestions = selectedPattern.questions.filter(q => {
-                            if (q.id === 'insurance_q2') {
-                                // Q2 uses getQuestion, just check answer
-                                return q.checkAnswer(vaText);
-                            } else {
-                                return q.checkAnswer(vaText);
-                            }
-                        });
-                    } else {
-                        // Other Questions
-                        answeredQuestions = selectedPattern.questions.filter(q => q.checkAnswer(vaText));
-                    }
-                    
-                    // Questions are only "answered" if VA actually gave good answers (not bad answers)
-                    const questionsProperlyAnswered = answeredQuestions.length >= selectedPattern.totalQuestions && badAnswerCount < 3;
-                    
-                    // Check for RED FLAG responses
-                    const vaIgnoredQuestion = lastVAMessage.length < 10 && !lastVAMessage.includes('yes') && !lastVAMessage.includes('no');
-                    const vaPuntedToOthers = lastVAMessage.includes('let me ask') || lastVAMessage.includes('check with') || lastVAMessage.includes('someone else') || lastVAMessage.includes('not sure');
-                    const vaVagueAboutInclusions = (patientMessages.some(p => p.text.toLowerCase().includes('include')) && (lastVAMessage.includes('figure it out') || lastVAMessage.includes('see when you come')));
-                    
-                    // Check if patient has already said they're ready to book OR asked about appointment availability
-                    const patientSaidReadyToBook = patientMessages.some(p => {
-                        const text = p.text.toLowerCase();
-                        return text.includes("ready to book") || 
-                               text.includes("let's book") || 
-                               text.includes("book the appointment");
-                    });
-                    
-                    // Check if patient asked about scheduling/appointments (indicates readiness)
-                    const patientAskedAboutAppointments = patientMessages.some(p => {
-                        const text = p.text.toLowerCase();
-                        return text.includes("appointment this week") || 
-                               text.includes("get an appointment") ||
-                               text.includes("schedule this week") ||
-                               text.includes("available this week");
-                    });
-
-                    // Patient is ready to book ONLY if questions were properly answered (no bad answers)
-                    const readyToBook = questionsProperlyAnswered && (patientSaidReadyToBook || patientAskedAboutAppointments);
-
-                    if (questionsProperlyAnswered && readyToBook) {
-                        // SWITCH TO EASY MODE BEHAVIOR
-                        
-                        // Check if VA is offering CHOICES (A or B) - patient should pick one
-                        const timeSlotPattern = /(\d{1,2})\s*(am|pm|a\.m|p\.m)/gi;
-                        const timeMatches = lastVAMessage.match(timeSlotPattern);
-                        
-                        // Detect if VA is asking patient to choose between options
-                        const askingMorningOrAfternoon = lastVAMessage.includes('morning') && lastVAMessage.includes('afternoon') && lastVAMessage.includes(' or ');
-                        const askingEarlyOrLate = (lastVAMessage.includes('early') || lastVAMessage.includes('earlier')) && (lastVAMessage.includes('late') || lastVAMessage.includes('later')) && lastVAMessage.includes(' or ');
-                        
-                        if (timeMatches && timeMatches.length >= 2) {
-                            // VA offered multiple time slots - pick one randomly
-                            const randomTime = timeMatches[Math.floor(Math.random() * timeMatches.length)];
-                            return `The VA just offered you multiple appointment times. Pick ONE specific time.
-
-CONVERSATION SO FAR:
-${convoText}
-
-The VA's last message mentioned these times: ${timeMatches.join(', ')}
-
-Pick ONE time randomly and respond with ONLY that choice.
-
-Examples of good responses:
-- "${randomTime} works great for me"
-- "I'll take ${randomTime}"
-- "${randomTime} is perfect"
-- "Let's do ${randomTime}"
-
-Pick one of these response styles randomly. Say nothing else.`;
-                        }
-                        
-                        if (askingMorningOrAfternoon) {
-                            // VA asking morning or afternoon - pick one
-                            const choice = Math.random() < 0.5 ? 'morning' : 'afternoon';
-                            return `The VA is asking if you prefer morning or afternoon.
-
-Pick ONE randomly and respond naturally.
-
-Examples:
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} works better for me"
-- "I'd prefer ${choice}"
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} is best"
-- "Let's do ${choice}"
-
-Pick one response style randomly. Say nothing else.`;
-                        }
-                        
-                        if (askingEarlyOrLate) {
-                            // VA asking early or later in week - pick one
-                            const choice = Math.random() < 0.5 ? 'earlier in the week' : 'later in the week';
-                            return `The VA is asking if you prefer early or later in the week.
-
-Pick ONE randomly and respond naturally.
-
-Examples:
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} works better for me"
-- "I'd prefer ${choice}"
-- "${choice.charAt(0).toUpperCase() + choice.slice(1)} is best"
-
-Pick one response style randomly. Say nothing else.`;
-                        }
-                        
-                        // Detect what information VA is REQUESTING (not just mentioning)
-                        // Only respond with info if VA is ASKING for it, not just confirming/informing
-                        const askingForEmail = (
-                            (lastVAMessage.includes('email') && 
-                            (lastVAMessage.includes('can i have') || 
-                             lastVAMessage.includes('what is') || 
-                             lastVAMessage.includes('what\'s') ||
-                             lastVAMessage.includes('whats') ||
-                             lastVAMessage.includes('may i have') ||
-                             lastVAMessage.includes('i need') ||
-                             lastVAMessage.includes('give me') ||
-                             lastVAMessage.includes('send to') ||
-                             lastVAMessage.includes('best email') ||
-                             lastVAMessage.includes('your email'))) &&
-                            !lastVAMessage.includes('sending') &&
-                            !lastVAMessage.includes('send it to') &&
-                            !lastVAMessage.includes('will send') &&
-                            !lastVAMessage.includes('i\'ll send')
-                        );
-                        
-                        const askingForPhone = (
-                            (lastVAMessage.includes('phone') || lastVAMessage.includes('number')) && 
-                            (lastVAMessage.includes('can i have') || 
-                             lastVAMessage.includes('what is') || 
-                             lastVAMessage.includes('what\'s') ||
-                             lastVAMessage.includes('whats') ||
-                             lastVAMessage.includes('may i have') ||
-                             lastVAMessage.includes('i need') ||
-                             lastVAMessage.includes('give me') ||
-                             lastVAMessage.includes('best number') ||
-                             lastVAMessage.includes('your phone') ||
-                             lastVAMessage.includes('your number'))
-                        );
-                        
-                        const askingForName = (
-                            lastVAMessage.includes('name') && 
-                            !askingForEmail && 
-                            !askingForPhone &&
-                            (lastVAMessage.includes('can i have') || 
-                             lastVAMessage.includes('what is') || 
-                             lastVAMessage.includes('what\'s') ||
-                             lastVAMessage.includes('whats') ||
-                             lastVAMessage.includes('may i have') ||
-                             lastVAMessage.includes('i need') ||
-                             lastVAMessage.includes('give me') ||
-                             lastVAMessage.includes('full name') ||
-                             lastVAMessage.includes('your name'))
-                        );
-                        
-                        const askingForReferral = lastVAMessage.includes('hear about') || lastVAMessage.includes('find us') || lastVAMessage.includes('how did you');
-                        
-                        // Check if VA is asking for referral follow-up (who referred you)
-                        const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
-                        const askingWhoReferred = patientSaidGoogle && (
-                            lastVAMessage.includes('who') || 
-                            lastVAMessage.includes('who referred') ||
-                            lastVAMessage.includes('name of') || 
-                            lastVAMessage.includes('which friend') || 
-                            lastVAMessage.includes('friend\'s name') ||
-                            lastVAMessage.includes('who can we thank') ||
-                            lastVAMessage.includes('thank for')
-                        );
-                        
-                        // Only trigger general availability if NOT asking about specific times or choices
-                        const askingForAvailability = (lastVAMessage.includes('availability') || lastVAMessage.includes('when') || lastVAMessage.includes('what day')) && !askingMorningOrAfternoon && !askingEarlyOrLate && !timeMatches;
-                        
-                        return `You are Mike Davis, a patient on a phone call with a chiropractic office. You've asked your questions and you're ready to book.
-
-YOUR PERSONAL INFO (use these EXACT values when asked):
-- Your name: Mike Davis
-- Your phone number: 555-234-5678
-- Your email: mike.davis@email.com
-- Your availability: flexible, any day works
-- How you heard about them: a friend recommended you
-- Friend's name (if asked): Tim
-
-CONVERSATION SO FAR:
-${convoText}
-
-VA'S LAST MESSAGE: "${lastVAMessage}"
-
-CRITICAL INSTRUCTIONS - ANSWER WHAT VA ASKED FOR:
-${askingForName ? '- VA is asking for your NAME. Say ONLY: "Mike Davis"' : ''}
-${askingForEmail && askingForPhone ? '- VA is asking for your EMAIL AND PHONE. Say: "My email is mike.davis@email.com and my phone number is 555-234-5678"' : ''}
-${askingForEmail && !askingForPhone ? '- VA is asking for your EMAIL only. Say ONLY: "mike.davis@email.com"' : ''}
-${askingForPhone && !askingForEmail ? '- VA is asking for your PHONE only. Say ONLY: "555-234-5678"' : ''}
-${askingForReferral ? '- VA is asking HOW YOU HEARD about them. Say ONLY: "A friend recommended you"' : ''}
-${askingWhoReferred ? '- VA is asking WHO your friend is. Say ONLY: "Tim"' : ''}
-${askingForAvailability ? '- VA is asking about general AVAILABILITY. Say ONLY: "Flexible, any day works"' : ''}
-${!askingForName && !askingForEmail && !askingForPhone && !askingForReferral && !askingWhoReferred && !askingForAvailability ? '- If they offer an appointment time: Say "Yes, that works for me" or "Perfect, I\'ll be there"\n- If they confirm details or inform about sending forms: Say "Perfect, thank you!" or "Sounds good"\n- Otherwise, respond naturally to what they said' : ''}
-
-CRITICAL: Only give your email/phone when VA is ASKING for it, not when they're just mentioning sending something to it.
-DO NOT say your email/phone when VA is just informing you about sending something.
-DO NOT repeat information you already gave.
-DO NOT say your name unless they specifically ask for your name.
-ONLY answer the specific question they just asked.
-
-Give a short 1-2 sentence response. Be friendly and cooperative.`;
-                    }
-
-                    // Build list of questions to ask
-                    let questionsToAsk = '';
-                    if (selectedPattern.type === 'insurance_triad') {
-                        // Insurance Triad - Show all 3 questions with dynamic Q2
-                        const q2Text = selectedPattern.questions[1].getQuestion(selectedPattern.insuranceName);
-                        questionsToAsk = `1. ${selectedPattern.questions[0].question}
-2. ${q2Text}
-3. ${selectedPattern.questions[2].question}`;
-                    } else {
-                        // Other Questions
-                        questionsToAsk = selectedPattern.questions.map((q, idx) => 
-                            `${idx + 1}. ${q.question}`
-                        ).join('\n');
-                    }
-
-                    // Build status of answered questions
-                    const questionStatus = selectedPattern.questions.map((q, idx) => 
-                        answeredQuestions.includes(q) ? `✓ Question ${idx + 1} answered` : ''
-                    ).filter(s => s).join('\n');
-                    
-                    // Check if VA is asking for referral follow-up
-                    const patientSaidGoogle = patientMessages.some(m => m.text.toLowerCase().includes('google'));
-                    const askingWhoReferred = patientSaidGoogle && (
-                        lastVAMessage.includes('who') || 
-                        lastVAMessage.includes('who referred') ||
-                        lastVAMessage.includes('name of') || 
-                        lastVAMessage.includes('which friend') ||
-                        lastVAMessage.includes('friend\'s name') ||
-                        lastVAMessage.includes('who can we thank') ||
-                        lastVAMessage.includes('thank for')
-                    );
-
-                    return `You are Mike Davis, a patient calling a chiropractic office. You want to book but have ${selectedPattern.type === 'insurance_triad' ? 'insurance questions' : 'a few questions'} first.
-
-YOUR PERSONAL INFO (use these EXACT values when asked):
-- Your name: Mike Davis
-- Your phone number: 555-234-5678
-- Your email: mike.davis@email.com
-- Your problem: neck pain and stiffness
-- Your availability: flexible, any day works
-- How you heard about them: found you on Google
-- Friend who referred you (if asked): Tim
-${selectedPattern.type === 'insurance_triad' ? `- Your insurance: ${selectedPattern.insuranceName}` : ''}
-
-CONVERSATION SO FAR:
-${convoText}
-
-YOUR QUESTIONS TO ASK (in order):
-${questionsToAsk}
-
-STATUS:
-- Questions you've asked so far: ${questionsAsked}/${selectedPattern.totalQuestions}
-- Bad VA responses so far: ${badAnswerCount}/3 ${badAnswerCount >= 3 ? '❌ TOO MANY BAD ANSWERS' : ''}
-- Questions properly answered: ${answeredQuestions.length}/${selectedPattern.totalQuestions}
-${questionStatus}
-
-${(() => {
-    if (questionsProperlyAnswered) {
-        return 'You\'ve asked all your questions and VA answered them well. Say: "Great, thank you for answering my questions. I\'m ready to book the appointment." Then STOP asking questions and wait for VA to guide you through booking.';
-    }
-    
-    if (questionsAsked < selectedPattern.totalQuestions) {
-        const nextQuestionIndex = questionsAsked;
-        let nextQuestion = '';
-        
-        if (selectedPattern.type === 'insurance_triad') {
-            if (nextQuestionIndex === 1) {
-                // Q2 uses getQuestion
-                nextQuestion = selectedPattern.questions[1].getQuestion(selectedPattern.insuranceName);
-            } else {
-                // Q1 and Q3 use .question
-                nextQuestion = selectedPattern.questions[nextQuestionIndex].question;
-            }
-        } else {
-            // Other questions just use .question
-            nextQuestion = selectedPattern.questions[nextQuestionIndex].question;
-        }
-        
-        const warning = badAnswerCount >= 2 ? `VA has given ${badAnswerCount} bad answers. If VA gives one more bad answer, you will refuse to book. ` : '';
-        return `${warning}Ask Question ${questionsAsked + 1}: "${nextQuestion}"`;
-    }
-    
-    return '';
-})()}
-
-${askingWhoReferred ? 'VA is asking WHO referred you. Say ONLY: "Tim"' : ''}
-
-ACCEPTABLE VA ANSWERS:
-${selectedPattern.type === 'insurance_triad' ? `- Q1 (Do you take insurance?): "We have programs that work with all types of insurance" or "Yes, we accept insurance" = GOOD
-- Q2 (Is my insurance covered?): "We have patients with that insurance" or "We work with that insurance" = GOOD  
-- Q3 (What does insurance cover?): "Bring your card and we'll verify" or "We'll check coverage" = GOOD` : `- Cost: Any range ($49-59), exact number ($59), or "varies/we'll discuss" = ALL GOOD
-- Duration: "30-45 minutes" or similar = GOOD
-- What to bring: "Insurance card, ID, previous records" = GOOD
-- What's included: "Consultation, exam, adjustment" or similar = GOOD`}
-
-DO NOT give all your information at once unless VA specifically asks for it.
-DO NOT repeat information you already gave.
-${askingWhoReferred ? '' : 'If VA asks who referred you, say "Tim".'}
-
-Give a short 1-2 sentence response. Be polite and friendly.`;
-                }
-
-                // Fallback
-                return `You are a patient calling a chiropractic office. 
-
-CONVERSATION SO FAR:
-${convoText}
-
-IMPORTANT INSTRUCTIONS:
-- Respond naturally and clearly in 1-2 sentences
-- Do NOT ask the receptionist to repeat themselves unless their message was completely unintelligible
-- If you can understand even part of what they said, respond to that
-- Be polite and friendly
-- Move the conversation forward
-
-Respond now:`;
-            };
-
-            // Call OpenAI API
-            const getPatientResponse = async () => {
-                const prompt = buildPrompt();
-                const key = apiKeyRef.current;
-                
-                console.log('=== API CALL ===');
-                console.log('Prompt:', prompt);
-                
-                try {
-                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${key}`
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-4o-mini',
-                            messages: [{ role: 'user', content: prompt }],
-                            max_tokens: 150,
-                            temperature: 0.7
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        console.error('API Error:', data.error);
-                        return "Sorry, could you repeat that?";
-                    }
-                    
-                    let reply = data.choices[0].message.content.trim();
-                    reply = reply.replace(/^(PATIENT:|Patient:|Me:|Caller:)\s*/i, '');
-                    reply = reply.replace(/^["']|["']$/g, '');
-                    
-                    console.log('Patient reply:', reply);
-                    return reply;
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    return "I'm sorry, could you say that again?";
-                }
-            };
-
-            // Evaluation
-            const evaluateCall = async () => {
-                const conversation = conversationRef.current;
-                const convoText = conversation.map(m => `${m.speaker}: ${m.text}`).join('\n');
-                const key = apiKeyRef.current;
-                const diff = difficultyRef.current;
-                const office = officeNameRef.current;
-                const doctor = doctorNameRef.current;
-                const cost = firstVisitCostRef.current;
-                
-                const evalPrompt = `Evaluate this VA's phone call performance at a chiropractic office.
-
-CORRECT OFFICE INFO (what VA should have said):
-- OFFICE NAME: ${office}
-- DOCTOR NAME: Dr. ${doctor}
-- FIRST VISIT COST: $${cost}
-
-DIFFICULTY MODE: ${diff.toUpperCase()}
-
-FULL CALL TRANSCRIPT:
-${convoText}
-
-EVALUATION CRITERIA - Score each 0-10:
-
-1. GREETING & INTRODUCTION (0-10):
-   IMPORTANT: Speech recognition often mishears office names. Be VERY LENIENT about office name pronunciation.
-   
-   Give 10/10 if VA did ALL of these:
-   - Introduced with their own name (e.g., "This is Sarah" or "My name is Sarah")
-   - ATTEMPTED to say the office name - even if speech recognition transcribed it incorrectly (e.g., "Brighton Spine" might show as "bread and spine")
-   - Used friendly, professional tone
-   - Said "How can I help you?" or similar offer to help
-   
-   CRITICAL: If you see ANY office-related words in the transcript near the greeting (even if misspelled/misheard), assume VA said the office name correctly. Give them full credit.
-   
-   Examples of speech recognition errors to forgive:
-   - "Brighton Spine" → "bread and spine", "brighton span", "right and spine"
-   - "Smith Chiropractic" → "smith care practice", "smith chiro"  
-   - Any similar sounding words = GIVE CREDIT
-   
-   Give 8/10 if: Did greeting but missing ONE element (like "how can I help")
-   Give 6/10 if: Said their name but NO office name attempted at all
-   Give 4/10 if: No personal name AND no office name
-   Give 0-2/10 if: No greeting at all
-
-2. REASON FOR CALL (0-10):
-   - Did VA identify why patient called (pain complaint, appointment request)?
-   - Did they acknowledge it appropriately?
-   - Did they show empathy/understanding?
-
-3. SCHEDULING & TIME (0-10):
-   - Did VA offer specific appointment date/time?
-   - Did they confirm the appointment clearly?
-   - Did they ask about patient's time preferences (morning/afternoon, early/late week)?
-   - Did they provide 2+ time options for patient to choose from?
-
-4. PATIENT INFORMATION (0-10):
-   - Did VA collect full name?
-   - Did VA collect phone number?
-   - Did VA collect email address?
-   - Give 10/10 only if ALL THREE were collected
-
-5. REFERRAL SOURCE (0-10):
-   - Did VA ask how patient heard about the office?
-   - Did they note/acknowledge the response?
-
-6. FEE EXPLANATION (0-10):
-   CRITICAL: The correct explanation is "consultation, examination, and 1 free adjustment"
-   
-   Give 10/10 if VA mentions ALL THREE:
-   - Consultation (or "consult")
-   - Examination (or "exam")  
-   - Adjustment (or "adjustment")
-   AND mentions the price ($${cost})
-   
-   Give 8/10 if VA mentions:
-   - The price AND 2 out of 3 items (e.g., "consultation and exam" but forgot adjustment)
-   
-   Give 5/10 if VA is vague:
-   - "We'll go over everything on your first visit"
-   - "We'll discuss what's included"
-   - No specific details given
-   
-   Give 3/10 if VA only gives:
-   - The price without any explanation of what's included
-   
-   Give 0-2/10 if VA:
-   - Gives wrong price or provides no information at all
-
-7. PROFESSIONAL CLOSING (0-10):
-   - Did VA summarize the appointment details (date, time, location)?
-   - Did VA mention what to bring (insurance card, previous records)?
-   - Did VA mention next steps (intake form, arrival time)?
-   - Did they end warmly and professionally?
-   - Did they say goodbye appropriately?
-
-BONUS POINTS (0-30) - Award points for excellence in these areas:
-
-Communication Excellence (10 points max):
-- Natural conversational flow (not robotic) = 3 points
-- No awkward pauses or dead air = 2 points
-- Appropriate speaking pace (not too fast/slow) = 2 points
-- Active listening (responding to what patient said) = 3 points
-
-Professionalism (10 points max):
-- Warm, friendly tone throughout = 3 points
-- Patient never had to repeat themselves = 2 points
-- No "ums", "uhs", or filler words = 2 points
-- Sounded confident and knowledgeable = 3 points
-
-Problem Solving (10 points max):
-- Answered patient questions smoothly = 4 points
-- Handled objections or concerns well = 3 points
-- Made patient feel heard and valued = 3 points
-
-CRITICAL SCORING INSTRUCTIONS:
-1. Add all 7 checkpoint scores (max 70 points)
-2. Add bonus points (max 30 points)  
-3. totalScore = checkpoint total + bonus points (max 100)
-
-Example: If checkpoints total 68 and bonus = 25, then totalScore MUST = 93
-
-CRITICAL: Check if patient ACTUALLY BOOKED:
-- If patient said "I'll call back", "I'll look elsewhere", "not booking", "call another time" = patientBooked FALSE
-- If VA said "I don't know" 3+ times = patientBooked FALSE and VA gets 0 points for those questions
-- Only mark patientBooked = true if patient actually agreed to appointment
-
-Return ONLY valid JSON (no markdown, no code blocks):
-{
-    "scores": {
-        "greeting": {"score": 0, "note": ""},
-        "reason": {"score": 0, "note": ""},
-        "scheduling": {"score": 0, "note": ""},
-        "patientInfo": {"score": 0, "note": ""},
-        "referral": {"score": 0, "note": ""},
-        "feeExplanation": {"score": 0, "note": ""},
-        "closing": {"score": 0, "note": ""}
-    },
-    "bonusBreakdown": {
-        "communication": 0,
-        "professionalism": 0,
-        "problemSolving": 0
-    },
-    "bonus": 0,
-    "totalScore": 0,
-    "positives": [""],
-    "improvements": [""],
-    "criticalMisses": [""],
-    "patientBooked": true,
-    "summary": ""
-}`;
-
-                try {
-                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${key}`
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-4o-mini',
-                            messages: [{ role: 'user', content: evalPrompt }],
-                            max_tokens: 1000,
-                            temperature: 0.3
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    let content = data.choices[0].message.content.trim();
-                    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                    
-                    const evalResult = JSON.parse(content);
-                    
-                    // CRITICAL: Recalculate totalScore to ensure correct math
-                    // Sometimes AI doesn't add correctly, so we force it
-                    const checkpointTotal = Object.values(evalResult.scores).reduce((sum, item) => sum + item.score, 0);
-                    const bonusTotal = evalResult.bonus || 0;
-                    evalResult.totalScore = checkpointTotal + bonusTotal;
-                    
-                    console.log('=== SCORE VERIFICATION ===');
-                    console.log('Checkpoint Total:', checkpointTotal);
-                    console.log('Bonus Total:', bonusTotal);
-                    console.log('Total Score (Recalculated):', evalResult.totalScore);
-                    console.log('==========================');
-                    
-                    return evalResult;
-                } catch (error) {
-                    console.error('Eval error:', error);
-                    return null;
-                }
-            };
-
-            const playAudio = async (text) => {
-                setCurrentStatus('speaking');
-                shouldListenRef.current = false;
-                
-                // Check if patient is refusing to book (new logic)
-                const refusalPhrases = [
-                    "i'll call back another time",
-                    "i'll look for another office",
-                    "i'll call elsewhere",
-                    "i'll find another chiropractor",
-                    "not booking",
-                    "call another time"
-                ];
-                
-                const isRefusal = refusalPhrases.some(phrase => text.toLowerCase().includes(phrase));
-                
-                try {
-                    const response = await fetch('https://api.openai.com/v1/audio/speech', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKeyRef.current}`
-                        },
-                        body: JSON.stringify({
-                            model: 'tts-1',
-                            input: text,
-                            voice: 'nova'
-                        })
-                    });
-                    
-                    const audioBlob = await response.blob();
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = new Audio(audioUrl);
-                    audioRef.current = audio;
-                    
-                    audio.onended = () => {
-                        // Check if this was a refusal to book - end call immediately
-                        if (isRefusal) {
-                            console.log('Patient refused to book - ending call immediately');
-                            callEndingRef.current = true;
-                            setTimeout(() => endCall(), 1000);
-                            return;
-                        }
-                        
-                        // Check if this was a goodbye response
-                        if (isGoodbyePhrase(text) || callEndingRef.current) {
-                            // Patient said goodbye - end the call
-                            console.log('Call ending detected - patient said goodbye');
-                            callEndingRef.current = true;
-                            setTimeout(() => endCall(), 1000);
-                        } else {
-                            setCurrentStatus('listening');
-                            shouldListenRef.current = true;
-                            startListening();
-                        }
-                    };
-                    
-                    await audio.play();
-                } catch (error) {
-                    console.error('Audio error:', error);
-                    setCurrentStatus('listening');
-                    shouldListenRef.current = true;
-                    startListening();
-                }
-            };
-
-            const startListening = () => {
-                if (recognitionRef.current && shouldListenRef.current) {
-                    try {
-                        recognitionRef.current.start();
-                    } catch (e) {}
-                }
-            };
-
-            useEffect(() => {
-                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    recognitionRef.current = new SpeechRecognition();
-                    recognitionRef.current.continuous = true;
-                    recognitionRef.current.interimResults = true;
-
-                    recognitionRef.current.onresult = (event) => {
-                        let interim = '';
-                        let final = '';
-                        
-                        for (let i = event.resultIndex; i < event.results.length; i++) {
-                            if (event.results[i].isFinal) {
-                                final += event.results[i][0].transcript;
-                            } else {
-                                interim += event.results[i][0].transcript;
-                            }
-                        }
-
-                        if (interim) {
-                            setInterimText(interim);
-                            console.log('Interim text:', interim);
-                            
-                            // BACKUP: If we have interim text but never get final result, force process after 3 seconds
-                            if (forceProcessTimerRef.current) clearTimeout(forceProcessTimerRef.current);
-                            forceProcessTimerRef.current = setTimeout(() => {
-                                if (interim && shouldListenRef.current && !isProcessingRef.current && !lastTranscriptRef.current) {
-                                    console.log('Force processing interim text (browser didn\'t finalize):', interim);
-                                    handleVAResponse(interim);
-                                    setInterimText('');
-                                }
-                            }, 3000);
-                        }
-                        
-                        if (final && shouldListenRef.current && !isProcessingRef.current) {
-                            console.log('Final text received:', final);
-                            console.log('Should listen?', shouldListenRef.current);
-                            console.log('Is processing?', isProcessingRef.current);
-                            
-                            // Clear backup timer since we got final result
-                            if (forceProcessTimerRef.current) clearTimeout(forceProcessTimerRef.current);
-                            if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-                            
-                            lastTranscriptRef.current = (lastTranscriptRef.current + ' ' + final).trim();
-                            setInterimText(lastTranscriptRef.current);
-                            console.log('Accumulated transcript:', lastTranscriptRef.current);
-                            
-                            // Reduced from 1500ms to 800ms for faster response
-                            silenceTimerRef.current = setTimeout(() => {
-                                if (lastTranscriptRef.current && shouldListenRef.current) {
-                                    console.log('Processing VA response:', lastTranscriptRef.current);
-                                    handleVAResponse(lastTranscriptRef.current);
-                                    lastTranscriptRef.current = '';
-                                    setInterimText('');
-                                }
-                            }, 800);
-                        }
-                    };
-
-                    recognitionRef.current.onend = () => {
-                        if (shouldListenRef.current && !callEndingRef.current) {
-                            setTimeout(() => {
-                                try { recognitionRef.current.start(); } catch (e) {}
-                            }, 100);
-                        }
-                    };
-                }
-            }, []);
-
+            // START CALL
             const startCall = async () => {
-                if (!difficulty || !officeName || !doctorName || !firstVisitCost) return;
-                
-                // Select random questions for challenging mode
-                if (difficulty === 'challenging') {
-                    selectedQuestionsRef.current = selectRandomQuestions();
-                    const pattern = selectedQuestionsRef.current;
-                    console.log('=== CHALLENGING MODE PATTERN ===');
-                    console.log('Type:', pattern.type);
-                    if (pattern.type === 'insurance_triad') {
-                        console.log('Insurance Company:', pattern.insuranceName);
-                        console.log('Questions: Insurance Triad (3 questions)');
-                    } else {
-                        console.log('Questions:', pattern.questions.length, 'random questions');
-                        pattern.questions.forEach((q, i) => console.log(`  ${i+1}. ${q.question}`));
-                    }
-                    console.log('================================');
+                if (!officeName || !doctorName || !difficulty) {
+                    alert('Please fill in all fields');
+                    return;
                 }
-                
-                // Reset
-                conversationRef.current = [];
-                setMessages([]);
-                setGameState('playing');
-                callEndingRef.current = false;
-                
-                // Record start time
-                const startTime = new Date();
-                setCallStartTime(startTime);
-                
-                // Update refs immediately
-                difficultyRef.current = difficulty;
-                apiKeyRef.current = apiKey;
-                officeNameRef.current = officeName;
-                doctorNameRef.current = doctorName;
-                firstVisitCostRef.current = firstVisitCost;
-                
-                console.log('=== CALL STARTED ===');
-                console.log('Difficulty set to:', difficulty);
-                console.log('Difficulty ref:', difficultyRef.current);
-                
-                setMessages([{ type: 'system', text: '📞 Incoming call...' }]);
+
+                // Check for API key
+                const apiKey = localStorage.getItem('openai_api_key');
+                if (!apiKey) {
+                    alert('Please set your API key first');
+                    setShowApiKeyPrompt(true);
+                    return;
+                }
+
+                setGameState('calling');
+                setMessages([{ type: 'system', text: '📞 Calling patient... (Listen for ringing)' }]);
+                conversationHistoryRef.current = [];
                 setCurrentStatus('idle');
-                
-                // Play phone ring
-                await playPhoneRing();
-                
-                setMessages([{ type: 'system', text: '📞 Call connected! Answer with your greeting...' }]);
-                setCurrentStatus('listening');
-                shouldListenRef.current = true;
-                
-                setTimeout(() => startListening(), 500);
-            };
 
-            const handleVAResponse = async (transcript) => {
-                if (isProcessingRef.current || callEndingRef.current) return;
-                isProcessingRef.current = true;
-                shouldListenRef.current = false;
-                
-                if (recognitionRef.current) {
-                    try { recognitionRef.current.stop(); } catch (e) {}
-                }
-                
-                setCurrentStatus('thinking');
-                
-                conversationRef.current.push({ speaker: 'VA', text: transcript });
-                setMessages(prev => [...prev, { type: 'staff', text: transcript }]);
-                
-                // Check if VA is saying goodbye
-                if (isGoodbyePhrase(transcript)) {
-                    console.log('Goodbye phrase detected from VA:', transcript);
-                    callEndingRef.current = true;
-                }
-                
                 try {
-                    const patientReply = await getPatientResponse();
+                    // Play actual phone ringing sound
+                    console.log('Starting phone ring...');
+                    await playPhoneRing();
+                    console.log('Phone ring completed, patient answered');
                     
-                    conversationRef.current.push({ speaker: 'PATIENT', text: patientReply });
-                    setMessages(prev => [...prev, { type: 'patient', text: patientReply }]);
+                    setMessages(prev => [...prev, { type: 'system', text: '✅ Patient picked up! Start speaking now...' }]);
+                    setCallStartTime(new Date());
                     
-                    await playAudio(patientReply);
+                    // Initialize Audio Context
+                    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+
+                    // Connect to OpenAI Realtime API
+                    const ws = new WebSocket(
+                        'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17',
+                        ['realtime', `openai-insecure-api-key.${apiKey}`, 'openai-beta.realtime-v1']
+                    );
+
+                    wsRef.current = ws;
+
+                    ws.onopen = () => {
+                        console.log('Connected to OpenAI Realtime API');
+                        
+                        // Configure session with longer silence duration to prevent interruptions
+                        ws.send(JSON.stringify({
+                            type: 'session.update',
+                            session: {
+                                modalities: ['text', 'audio'],
+                                instructions: getSystemPrompt(difficulty),
+                                voice: 'alloy',  // Natural, friendly voice for patient
+                                input_audio_format: 'pcm16',
+                                output_audio_format: 'pcm16',
+                                input_audio_transcription: {
+                                    model: 'whisper-1'
+                                    // NOTE: prompt, language, temperature not supported in Realtime API
+                                },
+                                turn_detection: {
+                                    type: 'server_vad',
+                                    threshold: 0.7,  // More sensitive to catch all speech
+                                    prefix_padding_ms: 800,  // Increased buffer to catch start of speech
+                                    silence_duration_ms: 5000  // 5 FULL SECONDS of silence before AI responds
+                                },
+                                temperature: 0.6,  // Lower temperature for more consistent instruction following
+                                max_response_output_tokens: 4096
+                            }
+                        }));
+
+                        // Start audio capture
+                        startAudioCapture();
+                    };
+
+                    ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            handleRealtimeEvent(data);
+                        } catch (error) {
+                            console.error('Error parsing message:', error);
+                        }
+                    };
+
+                    ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        alert('Connection error. Please try again.');
+                        setGameState('setup');
+                    };
+
+                    ws.onclose = () => {
+                        console.log('WebSocket closed');
+                    };
+
                 } catch (error) {
-                    console.error('Error:', error);
-                    setCurrentStatus('listening');
-                    shouldListenRef.current = true;
-                    startListening();
+                    console.error('Error starting call:', error);
+                    alert('Failed to start call. Please try again.');
+                    setGameState('setup');
                 }
-                
-                isProcessingRef.current = false;
             };
 
-            const endCall = async () => {
-                shouldListenRef.current = false;
-                callEndingRef.current = true;
-                if (recognitionRef.current) try { recognitionRef.current.stop(); } catch (e) {}
-                if (audioRef.current) audioRef.current.pause();
+            // HANDLE REALTIME EVENTS
+            const handleRealtimeEvent = (event) => {
+                switch (event.type) {
+                    case 'session.updated':
+                        console.log('Session configured');
+                        break;
+
+                    case 'input_audio_buffer.speech_started':
+                        console.log('🎤 Speech detected - You started speaking');
+                        setCurrentStatus('listening');
+                        setInterimText('');
+                        break;
+
+                    case 'input_audio_buffer.speech_stopped':
+                        console.log('⏸️ Speech ended - Processing what you said...');
+                        setCurrentStatus('thinking');
+                        break;
+
+                    case 'conversation.item.input_audio_transcription.completed':
+                        const userText = event.transcript;
+                        console.log('📝 YOU (VA) SAID:', userText);
+                        console.log('📝 Raw transcript:', event);
+                        setMessages(prev => [...prev, { type: 'staff', text: userText }]);
+                        conversationHistoryRef.current.push({ role: 'user', text: userText });
+                        setInterimText('');
+                        break;
+
+                    case 'conversation.item.input_audio_transcription.failed':
+                        console.error('❌ Transcription failed:', event);
+                        console.error('This usually means audio quality issues or API problems');
+                        break;
+
+                    case 'response.audio_transcript.delta':
+                        setInterimText(prev => prev + event.delta);
+                        break;
+
+                    case 'response.audio_transcript.done':
+                        const assistantText = event.transcript;
+                        console.log('🤖 PATIENT SAID:', assistantText);
+                        setMessages(prev => [...prev, { type: 'patient', text: assistantText }]);
+                        conversationHistoryRef.current.push({ role: 'assistant', text: assistantText });
+                        setInterimText('');
+                        break;
+
+                    case 'response.audio.delta':
+                        if (event.delta) {
+                            setCurrentStatus('speaking');
+                            playAudioChunk(event.delta);
+                        }
+                        break;
+
+                    case 'response.audio.done':
+                        setCurrentStatus('idle');
+                        break;
+
+                    case 'response.done':
+                        setCurrentStatus('idle');
+                        break;
+
+                    case 'error':
+                        console.error('API Error:', event);
+                        break;
+                }
+            };
+
+            // AUDIO CAPTURE
+            const startAudioCapture = async () => {
+                try {
+                    // Simplified but enhanced audio constraints
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    
+                    const mediaRecorder = new MediaRecorder(stream);
+                    const audioContext = audioContextRef.current;
+                    const source = audioContext.createMediaStreamSource(stream);
+                    const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                    source.connect(processor);
+                    processor.connect(audioContext.destination);
+
+                    processor.onaudioprocess = (e) => {
+                        if (wsRef.current?.readyState === WebSocket.OPEN) {
+                            const inputData = e.inputBuffer.getChannelData(0);
+                            const pcm16 = float32ToPCM16(inputData);
+                            const base64Audio = btoa(String.fromCharCode.apply(null, pcm16));
+                            
+                            wsRef.current.send(JSON.stringify({
+                                type: 'input_audio_buffer.append',
+                                audio: base64Audio
+                            }));
+                        }
+                    };
+                    
+                    console.log('✅ Microphone started with audio enhancements');
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    alert('Microphone access denied. Please allow microphone access and ensure you have a working microphone.');
+                }
+            };
+
+            // AUDIO PLAYBACK - Fixed to prevent garbled audio
+            let audioQueue = [];
+            let isPlayingAudio = false;
+
+            const playAudioChunk = (base64Audio) => {
+                // Add to queue
+                audioQueue.push(base64Audio);
                 
-                // Record end time
+                // If not currently playing, start playing
+                if (!isPlayingAudio) {
+                    playNextAudioChunk();
+                }
+            };
+
+            const playNextAudioChunk = () => {
+                if (audioQueue.length === 0) {
+                    isPlayingAudio = false;
+                    return;
+                }
+
+                isPlayingAudio = true;
+                const base64Audio = audioQueue.shift();
+
+                try {
+                    const binaryString = atob(base64Audio);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    const pcm16 = new Int16Array(bytes.buffer);
+                    const float32 = new Float32Array(pcm16.length);
+                    for (let i = 0; i < pcm16.length; i++) {
+                        float32[i] = pcm16[i] / 32768.0;
+                    }
+
+                    const audioContext = audioContextRef.current;
+                    const buffer = audioContext.createBuffer(1, float32.length, 24000);
+                    buffer.getChannelData(0).set(float32);
+
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(audioContext.destination);
+                    
+                    // When this chunk finishes, play the next one
+                    source.onended = () => {
+                        playNextAudioChunk();
+                    };
+                    
+                    source.start();
+                } catch (error) {
+                    console.error('Error playing audio:', error);
+                    // Continue to next chunk even if this one failed
+                    playNextAudioChunk();
+                }
+            };
+
+            // CONVERT FLOAT32 TO PCM16
+            const float32ToPCM16 = (float32Array) => {
+                const pcm16 = new Int16Array(float32Array.length);
+                for (let i = 0; i < float32Array.length; i++) {
+                    const s = Math.max(-1, Math.min(1, float32Array[i]));
+                    pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                }
+                return new Uint8Array(pcm16.buffer);
+            };
+
+            // END CALL AND SCORE
+            const endCall = async () => {
                 const endTime = new Date();
                 setCallEndTime(endTime);
                 
-                setCurrentStatus('thinking');
-                setMessages(prev => [...prev, { type: 'system', text: '📊 Evaluating...' }]);
-                
-                const evalResult = await evaluateCall();
-                
-                if (evalResult) {
-                    setScoreData(evalResult);
-                    
-                    // Save call log
-                    const callDuration = callStartTime ? Math.round((new Date() - new Date(callStartTime)) / 1000) : 0;
-                    saveCallLog({
-                        difficulty: difficultyRef.current,
-                        score: evalResult.totalScore,
-                        patientBooked: evalResult.patientBooked,
-                        callDuration: `${Math.floor(callDuration / 60)}m ${callDuration % 60}s`,
-                        officeName: officeNameRef.current,
-                        doctorName: doctorNameRef.current,
-                        checkpointScores: evalResult.scores,
-                        bonusPoints: evalResult.bonus
-                    });
-                } else {
-                    setScoreData({
-                        scores: {
-                            greeting: { score: 5, note: 'Evaluation unavailable' },
-                            reason: { score: 5, note: '' },
-                            scheduling: { score: 5, note: '' },
-                            patientInfo: { score: 5, note: '' },
-                            referral: { score: 5, note: '' },
-                            feeExplanation: { score: 5, note: '' },
-                            closing: { score: 5, note: '' }
-                        },
-                        bonus: 15,
-                        totalScore: 50,
-                        positives: ['Call completed'],
-                        improvements: ['Try again'],
-                        criticalMisses: [],
-                        patientBooked: true,
-                        summary: 'Evaluation unavailable'
-                    });
+                // Close WebSocket
+                if (wsRef.current) {
+                    wsRef.current.close();
                 }
+
+                // Close audio context
+                if (audioContextRef.current) {
+                    audioContextRef.current.close();
+                }
+
+                setCurrentStatus('idle');
                 
+                // Show scoring screen immediately with loading state
                 setGameState('scoring');
+                setScoreData(null); // Set to null initially
+
+                console.log('🔄 Starting evaluation...');
+                console.log('Conversation history:', conversationHistoryRef.current);
+
+                // Get AI scoring
+                try {
+                    // Get API key from localStorage
+                    const apiKey = localStorage.getItem('openai_api_key');
+                    console.log('API Key found:', apiKey ? 'Yes' : 'No');
+                    
+                    if (!apiKey) {
+                        console.error('❌ No API key in localStorage');
+                        throw new Error('API key not found in localStorage. Please refresh and enter your API key.');
+                    }
+
+                    const scoringPrompt = `Analyze this OUTBOUND follow-up call conversation and provide detailed scoring.
+
+CONVERSATION TRANSCRIPT:
+${conversationHistoryRef.current.map(msg => `${msg.role === 'user' ? 'VA' : 'Patient'}: ${msg.text}`).join('\n')}
+
+CONTEXT:
+- Office: ${officeName}
+- Doctor: Dr. ${doctorName}
+- Scenario: VA calling patient who submitted online inquiry form
+- Difficulty: ${difficulty}
+
+IMPORTANT: Evaluate based on what actually happened in the conversation above.
+
+SCORE THE FOLLOWING 7 CHECKPOINTS (0-10 points each):
+
+1. PROFESSIONAL INTRODUCTION (0-10):
+   - Did VA clearly state their name and the office name?
+   - Was the greeting professional and friendly?
+   - Did they verify they were speaking with the right person?
+
+2. HEALTH HISTORY INQUIRY (0-10):
+   - Did VA ask about patient's health concerns or pain?
+   - Did they show genuine interest in understanding the situation?
+
+3. PURPOSE STATED (0-10):
+   - Did VA clearly explain they were following up on the patient's inquiry form?
+   - Was the purpose of the call immediately clear?
+
+4. SPECIFIC APPOINTMENT OPTIONS (0-10):
+   - Did VA propose specific dates and times (not just "what works for you")?
+   - Did they offer multiple options?
+
+5. OBJECTION HANDLING (0-10):
+   - Did VA address patient questions confidently?
+   - How well did they handle cost concerns or questions?
+
+6. PAYMENT COLLECTION (0-10):
+   - Did VA clearly explain the initial payment amount and what it includes?
+   - Did they explain the value?
+
+7. CLOSING & CONFIRMATION (0-10):
+   - Did VA confirm the appointment details?
+   - Did they explain next steps?
+
+BONUS POINTS (up to 30 points total):
+- Communication Excellence (0-10): Clarity, pace, tone
+- Professionalism (0-10): Courtesy, confidence, empathy
+- Problem Solving (0-10): Flexibility, handling objections
+
+ALSO DETERMINE:
+- Did the patient ultimately BOOK the appointment? (true/false)
+
+Return ONLY a valid JSON object (no markdown, no backticks):
+{
+  "scores": {
+    "introduction": {"score": 0, "note": ""},
+    "healthHistory": {"score": 0, "note": ""},
+    "purposeStated": {"score": 0, "note": ""},
+    "appointmentOptions": {"score": 0, "note": ""},
+    "objectionHandling": {"score": 0, "note": ""},
+    "paymentCollection": {"score": 0, "note": ""},
+    "closingConfirmation": {"score": 0, "note": ""}
+  },
+  "bonus": 0,
+  "bonusBreakdown": {"communication": 0, "professionalism": 0, "problemSolving": 0},
+  "totalScore": 0,
+  "patientBooked": false,
+  "summary": "",
+  "positives": [],
+  "improvements": [],
+  "criticalMisses": []
+}`;
+
+                    console.log('📡 Calling OpenAI for scoring...');
+
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-4o',
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: 'You are an expert chiropractic office trainer. Return ONLY valid JSON, no markdown.'
+                                },
+                                {
+                                    role: 'user',
+                                    content: scoringPrompt
+                                }
+                            ],
+                            response_format: { type: 'json_object' },
+                            temperature: 0.3
+                        })
+                    });
+
+                    console.log('Response status:', response.status);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('API Error Response:', errorText);
+                        throw new Error(`OpenAI API returned ${response.status}: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('✅ Received scoring data:', data);
+                    
+                    const scoring = JSON.parse(data.choices[0].message.content);
+                    console.log('✅ Parsed scoring:', scoring);
+                    
+                    // Set the score data
+                    setScoreData(scoring);
+
+                    // Save call log to localStorage
+                    const callDuration = callStartTime && endTime ? 
+                        Math.floor((endTime - callStartTime) / 1000) : 0;
+                    
+                    saveCallLog({
+                        difficulty: difficulty,
+                        score: scoring.totalScore,
+                        patientBooked: scoring.patientBooked,
+                        callDuration: `${Math.floor(callDuration / 60)}m ${callDuration % 60}s`,
+                        officeName: officeName,
+                        doctorName: doctorName,
+                        checkpointScores: scoring.scores,
+                        bonusPoints: scoring.bonus
+                    });
+
+                    console.log('✅ Scoring complete and saved');
+
+                } catch (error) {
+                    console.error('❌ Error scoring call:', error);
+                    console.error('Error details:', error.message);
+                    
+                    // Provide default scoring that's guaranteed to work
+                    const fallbackScoring = {
+                        scores: {
+                            introduction: {score: 5, note: 'Could not evaluate - scoring error'},
+                            healthHistory: {score: 5, note: 'Could not evaluate - scoring error'},
+                            purposeStated: {score: 5, note: 'Could not evaluate - scoring error'},
+                            appointmentOptions: {score: 5, note: 'Could not evaluate - scoring error'},
+                            objectionHandling: {score: 5, note: 'Could not evaluate - scoring error'},
+                            paymentCollection: {score: 5, note: 'Could not evaluate - scoring error'},
+                            closingConfirmation: {score: 5, note: 'Could not evaluate - scoring error'}
+                        },
+                        bonus: 0,
+                        bonusBreakdown: {communication: 0, professionalism: 0, problemSolving: 0},
+                        totalScore: 35,
+                        patientBooked: false,
+                        summary: `Scoring failed: ${error.message}. Please check your API key and try again.`,
+                        positives: ['Call completed'],
+                        improvements: ['Fix API key issue and try again'],
+                        criticalMisses: []
+                    };
+                    
+                    setScoreData(fallbackScoring);
+                    console.log('⚠️ Using fallback scoring');
+                }
             };
 
+            // RESET GAME
             const resetGame = () => {
-                shouldListenRef.current = false;
-                callEndingRef.current = false;
-                if (recognitionRef.current) try { recognitionRef.current.stop(); } catch (e) {}
-                if (audioRef.current) audioRef.current.pause();
-                conversationRef.current = [];
-                selectedQuestionsRef.current = [];
                 setGameState('setup');
-                setDifficulty('');
                 setMessages([]);
                 setScoreData(null);
+                setDifficulty('');
+                conversationHistoryRef.current = [];
                 setCurrentStatus('idle');
+                setInterimText('');
                 setCallStartTime(null);
                 setCallEndTime(null);
             };
 
-            const canStart = officeName && doctorName && firstVisitCost && difficulty;
-
             // PASSWORD SCREEN
-            if (!isAuthenticated) {
+            if (gameState === 'password') {
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🔐 Virtual Front Desk Academy</h1>
-                            <p>Enter your access code to begin training</p>
+                            <h1>📞 Outbound Call Trainer</h1>
+                            <p>Virtual Front Desk Academy</p>
                         </div>
-                        <div className="content" style={{textAlign: 'center'}}>
-                            <input 
-                                type="password"
-                                placeholder="Access Code"
-                                value={passwordInput}
-                                onChange={(e) => setPasswordInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && checkPassword()}
-                                style={{padding: '15px', fontSize: '16px', width: '100%', maxWidth: '300px', marginBottom: '15px', borderRadius: '10px', border: '2px solid #667eea'}}
-                            />
-                            {passwordError && <p style={{color: 'red', marginBottom: '15px'}}>{passwordError}</p>}
-                            <br/>
-                            <button className="start-btn" style={{maxWidth: '300px'}} onClick={checkPassword}>Access Trainer</button>
-                            <p style={{marginTop: '20px', fontSize: '12px', color: '#666'}}>Don't have an access code? Contact your administrator.</p>
+                        <div className="content">
+                            <form onSubmit={handlePasswordSubmit}>
+                                <div className="form-group">
+                                    <label>Enter Your Training Password:</label>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="VFDA-OFFICE-VA#-2025"
+                                        autoFocus
+                                    />
+                                </div>
+                                <button type="submit" className="start-btn">
+                                    🔓 Access Training
+                                </button>
+                            </form>
+                            <div style={{marginTop: '20px', padding: '15px', background: '#f5f5f5', borderRadius: '10px', fontSize: '14px'}}>
+                                <strong>Password Format:</strong> VFDA-OFFICENAME-VA#-2025
+                                <br/><br/>
+                                Don't have a password? Contact your office manager.
+                            </div>
                         </div>
                     </div>
                 );
             }
 
-            // API KEY PROMPT
-            if (showApiPrompt) {
+            // API KEY PROMPT SCREEN
+            if (showApiKeyPrompt) {
                 return (
                     <div className="container">
                         <div className="header">
                             <h1>🔑 OpenAI API Key Required</h1>
-                            <p>Enter your OpenAI API key to enable voice features</p>
+                            <p>One-time setup</p>
                         </div>
                         <div className="content">
                             <div style={{padding: '15px', background: '#fff3cd', borderRadius: '10px', marginBottom: '20px', fontSize: '14px'}}>
-                                <strong>⚠️ Important:</strong>
+                                <strong>⚠️ You only need to do this once!</strong>
                                 <ul style={{marginTop: '10px', marginLeft: '20px', textAlign: 'left'}}>
-                                    <li>This is your <strong>OpenAI API key</strong>, NOT your access code</li>
-                                    <li>OpenAI API keys start with <strong>"sk-"</strong> or <strong>"sk-proj-"</strong></li>
                                     <li>Get your API key from: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></li>
+                                    <li>API keys start with <strong>"sk-"</strong> or <strong>"sk-proj-"</strong></li>
+                                    <li>Your key will be saved to this browser</li>
                                 </ul>
                             </div>
                             <div className="form-group">
-                                <label>OpenAI API Key</label>
-                                <input 
+                                <label>OpenAI API Key:</label>
+                                <input
                                     type="password"
+                                    value={apiKeyInput}
+                                    onChange={(e) => setApiKeyInput(e.target.value)}
                                     placeholder="sk-proj-..."
-                                    value={apiKey}
-                                    onChange={(e) => setApiKey(e.target.value)}
+                                    autoFocus
                                 />
                             </div>
-                            <button className="start-btn" onClick={saveApiKey} disabled={!apiKey}>Save & Continue</button>
-                        </div>
-                    </div>
-                );
-            }
-
-            // CALL HISTORY VIEW
-            if (showCallHistory) {
-                const callLogs = getCallLogs();
-                const role = sessionStorage.getItem('user_role');
-                
-                return (
-                    <div className="container">
-                        <div className="header">
-                            <h1>📊 Call History</h1>
-                            <p>{
-                                role === 'admin' ? 'All VAs - Admin View' : 
-                                role === 'doctor' ? `${currentVAName}'s Office - Team Performance` :
-                                `${currentVAName}'s Practice Calls`
-                            }</p>
-                        </div>
-                        <div className="content">
-                            <div style={{display: 'flex', gap: '10px', marginBottom: '20px'}}>
+                            <button 
+                                className="start-btn" 
+                                onClick={() => {
+                                    if (apiKeyInput && apiKeyInput.startsWith('sk-')) {
+                                        localStorage.setItem('openai_api_key', apiKeyInput);
+                                        setShowApiKeyPrompt(false);
+                                    } else {
+                                        alert('Please enter a valid OpenAI API key (starts with sk-)');
+                                    }
+                                }}
+                                disabled={!apiKeyInput}
+                            >
+                                💾 Save & Continue
+                            </button>
+                            {localStorage.getItem('openai_api_key') && (
                                 <button 
                                     className="start-btn" 
-                                    onClick={() => setShowCallHistory(false)}
-                                    style={{flex: 1, background: '#757575'}}
+                                    onClick={() => setShowApiKeyPrompt(false)}
+                                    style={{marginTop: '10px', background: '#757575'}}
                                 >
-                                    ← Back to Training
+                                    Skip (Use Existing Key)
                                 </button>
-                                {callLogs.length > 0 && (
-                                    <button 
-                                        className="start-btn" 
-                                        onClick={exportCallLogs}
-                                        style={{flex: 1, background: '#4caf50'}}
-                                    >
-                                        📥 Export CSV
-                                    </button>
-                                )}
-                            </div>
-                            
-                            {callLogs.length === 0 ? (
-                                <div style={{textAlign: 'center', padding: '40px', background: '#f5f5f5', borderRadius: '10px'}}>
-                                    <p style={{fontSize: '18px', marginBottom: '10px'}}>📭 No call history yet</p>
-                                    <p style={{color: '#666'}}>Complete your first practice call to see your history here!</p>
-                                </div>
-                            ) : (
-                                <>
-                                    <div style={{marginBottom: '20px', padding: '15px', background: '#e3f2fd', borderRadius: '10px'}}>
-                                        <strong>Total Calls:</strong> {callLogs.length} | <strong>Average Score:</strong> {(callLogs.reduce((sum, log) => sum + log.score, 0) / callLogs.length).toFixed(1)}/100
-                                    </div>
-                                    
-                                    <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                                        {callLogs.map((log, index) => {
-                                            const date = new Date(log.timestamp);
-                                            const passed = log.score >= 70;
-                                            
-                                            return (
-                                                <div key={log.id} style={{
-                                                    padding: '20px',
-                                                    background: 'white',
-                                                    borderRadius: '10px',
-                                                    border: `2px solid ${passed ? '#4caf50' : '#ff9800'}`,
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                                }}>
-                                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px'}}>
-                                                        <div>
-                                                            <div style={{fontSize: '18px', fontWeight: 'bold', marginBottom: '5px'}}>
-                                                                {passed ? '✅' : '⚠️'} Call #{callLogs.length - index}
-                                                            </div>
-                                                            {(role === 'admin' || role === 'doctor') && (
-                                                                <div style={{fontSize: '14px', color: '#666', marginBottom: '5px'}}>
-                                                                    👤 {log.vaName}
-                                                                </div>
-                                                            )}
-                                                            <div style={{fontSize: '13px', color: '#666'}}>
-                                                                📅 {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                                                            </div>
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: '28px',
-                                                            fontWeight: 'bold',
-                                                            color: passed ? '#4caf50' : '#ff9800'
-                                                        }}>
-                                                            {log.score}/100
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px', marginTop: '15px', fontSize: '13px'}}>
-                                                        <div>
-                                                            <strong>Mode:</strong> {log.difficulty === 'easy' ? '😊 Easy' : '🤔 Challenging'}
-                                                        </div>
-                                                        <div>
-                                                            <strong>Duration:</strong> {log.callDuration}
-                                                        </div>
-                                                        <div>
-                                                            <strong>Booked:</strong> {log.patientBooked ? '✅ Yes' : '❌ No'}
-                                                        </div>
-                                                        <div>
-                                                            <strong>Office:</strong> {log.officeName || 'N/A'}
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {role === 'admin' && (
-                                                        <button 
-                                                            onClick={() => {
-                                                                if (confirm('Delete this call log?')) {
-                                                                    deleteCallLog(log.id);
-                                                                    setShowCallHistory(false);
-                                                                    setTimeout(() => setShowCallHistory(true), 10);
-                                                                }
-                                                            }}
-                                                            style={{
-                                                                marginTop: '10px',
-                                                                padding: '8px 15px',
-                                                                background: '#f44336',
-                                                                color: 'white',
-                                                                border: 'none',
-                                                                borderRadius: '5px',
-                                                                cursor: 'pointer',
-                                                                fontSize: '12px'
-                                                            }}
-                                                        >
-                                                            🗑️ Delete
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </>
                             )}
                         </div>
                     </div>
@@ -2041,113 +1135,198 @@ Return ONLY valid JSON (no markdown, no code blocks):
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>🎯 Virtual Front Desk Academy Trainer</h1>
-                            <p>Practice your phone skills with AI patients</p>
+                            <h1>📞 Outbound Call Trainer</h1>
+                            <p>New Patient Follow-Up Scenario</p>
                         </div>
                         <div className="content">
-                            {currentVAName && (
-                                <div style={{marginBottom: '25px', padding: '15px', background: '#e8f5e9', borderRadius: '10px', textAlign: 'center'}}>
-                                    <strong>👋 Welcome, {currentVAName}!</strong>
-                                </div>
-                            )}
-                            
-                            <h3 style={{marginBottom: '20px'}}>Office Information:</h3>
+                            <div style={{marginBottom: '25px', padding: '15px', background: '#e8f5e9', borderRadius: '10px'}}>
+                                <strong>✓ Logged in as:</strong> {currentUser.name}
+                                {currentUser.office && <span> - {currentUser.office}</span>}
+                                <button 
+                                    onClick={() => setShowApiKeyPrompt(true)}
+                                    style={{float: 'right', background: '#757575', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px'}}
+                                >
+                                    🔑 Change API Key
+                                </button>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Office Name:</label>
+                                <input
+                                    type="text"
+                                    value={officeName}
+                                    onChange={(e) => setOfficeName(e.target.value)}
+                                    placeholder="e.g., Brighton Spine & Wellness"
+                                />
+                            </div>
+
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Office Name *</label>
-                                    <input 
+                                    <label>Doctor Name:</label>
+                                    <input
                                         type="text"
-                                        placeholder="Smith Chiropractic"
-                                        value={officeName}
-                                        onChange={(e) => setOfficeName(e.target.value)}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Doctor's Last Name *</label>
-                                    <input 
-                                        type="text"
-                                        placeholder="Smith"
                                         value={doctorName}
                                         onChange={(e) => setDoctorName(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>First Visit Cost ($) *</label>
-                                    <input 
-                                        type="number"
-                                        placeholder="59"
-                                        value={firstVisitCost}
-                                        onChange={(e) => setFirstVisitCost(e.target.value)}
+                                        placeholder="e.g., Johnson"
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Your Name (VA)</label>
-                                    <input 
+                                    <label>Your Name (Optional):</label>
+                                    <input
                                         type="text"
-                                        placeholder="Your name"
                                         value={vaName}
-                                        readOnly={currentVAName ? true : false}
                                         onChange={(e) => setVaName(e.target.value)}
-                                        style={{background: currentVAName ? '#f5f5f5' : 'white', cursor: currentVAName ? 'not-allowed' : 'text'}}
+                                        placeholder="Your name"
                                     />
                                 </div>
                             </div>
-                            
-                            <h3 style={{marginBottom: '20px', marginTop: '30px'}}>Select Difficulty:</h3>
-                            <div className="difficulty-grid">
-                                <div className={`difficulty-btn ${difficulty === 'easy' ? 'selected' : ''}`} onClick={() => setDifficulty('easy')}>
-                                    <div style={{fontSize: '24px'}}>😊</div>
-                                    <div><strong>Easy</strong></div>
-                                    <div style={{fontSize: '12px'}}>Cooperative patient, no questions</div>
-                                </div>
-                                <div className={`difficulty-btn ${difficulty === 'challenging' ? 'selected' : ''}`} onClick={() => setDifficulty('challenging')}>
-                                    <div style={{fontSize: '24px'}}>🤔</div>
-                                    <div><strong>Challenging</strong></div>
-                                    <div style={{fontSize: '12px'}}>Asks 2-3 random questions, then books</div>
-                                </div>
+
+                            <div style={{marginTop: '30px', marginBottom: '15px'}}>
+                                <h3 style={{marginBottom: '10px'}}>Select Difficulty:</h3>
                             </div>
-                            
+
+                            <div className="difficulty-grid">
+                                {Object.entries(difficulties).map(([key, diff]) => (
+                                    <div
+                                        key={key}
+                                        className={`difficulty-btn ${difficulty === key ? 'selected' : ''}`}
+                                        onClick={() => setDifficulty(key)}
+                                    >
+                                        <div style={{fontSize: '40px', marginBottom: '10px'}}>{diff.icon}</div>
+                                        <div style={{fontSize: '18px', fontWeight: 'bold', marginBottom: '5px'}}>
+                                            {diff.name}
+                                        </div>
+                                        <div style={{fontSize: '14px', opacity: 0.8}}>
+                                            {diff.description}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
                             <button 
                                 className="start-btn" 
-                                onClick={() => setShowCallHistory(true)}
-                                style={{marginBottom: '15px', background: '#2196F3'}}
+                                onClick={() => setGameState('lead-info')}
+                                disabled={!officeName || !doctorName || !difficulty}
                             >
-                                📊 View Call History
+                                👤 View Lead & Start Call
                             </button>
-                            
-                            <button className="start-btn" onClick={startCall} disabled={!canStart}>
-                                {canStart ? 'Start Call' : 'Fill in all fields'}
-                            </button>
+
+                            <div style={{marginTop: '20px', padding: '15px', background: '#fff3e0', borderRadius: '10px', fontSize: '14px'}}>
+                                <strong>⚡ Scenario:</strong> You're calling a patient who submitted an online inquiry form. 
+                                Your goal is to build rapport, understand their needs, and book them for their first appointment.
+                            </div>
                         </div>
                     </div>
                 );
             }
 
-            // PLAYING SCREEN
-            if (gameState === 'playing') {
+            // LEAD INFO SCREEN - Shows patient details before call
+            if (gameState === 'lead-info') {
+                const lead = difficulties[difficulty];
+                
                 return (
                     <div className="container">
                         <div className="header">
-                            <h1>📞 Call In Progress</h1>
-                            <p>{officeName} - {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Mode</p>
+                            <h1>📋 Lead Information</h1>
+                            <p>Review before calling</p>
+                        </div>
+                        <div className="content">
+                            <div style={{background: '#fff', border: '2px solid #16a085', borderRadius: '15px', padding: '25px', marginBottom: '20px'}}>
+                                <div style={{display: 'flex', alignItems: 'center', marginBottom: '20px', borderBottom: '2px solid #f0f0f0', paddingBottom: '15px'}}>
+                                    <div style={{fontSize: '50px', marginRight: '20px'}}>{lead.icon}</div>
+                                    <div>
+                                        <h2 style={{margin: 0, color: '#16a085'}}>{lead.leadName}</h2>
+                                        <div style={{fontSize: '14px', color: '#666', marginTop: '5px'}}>
+                                            Difficulty: <strong>{lead.name}</strong> - {lead.description}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px'}}>
+                                    <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '10px'}}>
+                                        <div style={{fontSize: '12px', color: '#666', marginBottom: '5px'}}>📞 PHONE</div>
+                                        <div style={{fontSize: '18px', fontWeight: 'bold', color: '#2c3e50'}}>{lead.leadPhone}</div>
+                                    </div>
+                                    <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '10px'}}>
+                                        <div style={{fontSize: '12px', color: '#666', marginBottom: '5px'}}>📧 EMAIL</div>
+                                        <div style={{fontSize: '14px', fontWeight: 'bold', color: '#2c3e50', wordBreak: 'break-all'}}>{lead.leadEmail}</div>
+                                    </div>
+                                </div>
+
+                                <div style={{background: '#fff3e0', padding: '15px', borderRadius: '10px', marginBottom: '20px'}}>
+                                    <div style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>🏥 HEALTH CONCERN</div>
+                                    <div style={{fontSize: '16px', fontWeight: 'bold', color: '#f57c00'}}>{lead.healthConcern}</div>
+                                </div>
+
+                                <div style={{background: '#e3f2fd', padding: '15px', borderRadius: '10px'}}>
+                                    <div style={{fontSize: '12px', color: '#666', marginBottom: '8px'}}>📅 FORM SUBMITTED</div>
+                                    <div style={{fontSize: '16px', fontWeight: 'bold', color: '#1976d2'}}>{lead.formSubmitted}</div>
+                                </div>
+                            </div>
+
+                            <div style={{background: '#e8f5e9', padding: '15px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px'}}>
+                                <strong>📝 Your Office Details:</strong>
+                                <div style={{marginTop: '8px'}}>
+                                    • Office: <strong>{officeName}</strong><br/>
+                                    • Doctor: <strong>Dr. {doctorName}</strong>
+                                    {vaName && <><br/>• Your Name: <strong>{vaName}</strong></>}
+                                </div>
+                            </div>
+
+                            <div style={{display: 'flex', gap: '10px'}}>
+                                <button 
+                                    className="start-btn" 
+                                    onClick={startCall}
+                                    style={{flex: 1, background: '#16a085'}}
+                                >
+                                    📞 Call {lead.leadName.split(' ')[0]} Now
+                                </button>
+                                <button 
+                                    onClick={() => setGameState('setup')}
+                                    style={{padding: '15px 25px', background: '#757575', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold'}}
+                                >
+                                    ← Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // CALLING SCREEN
+            if (gameState === 'calling') {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>📞 Outbound Call in Progress</h1>
+                            <p>Calling: {difficulties[difficulty].name} Patient</p>
                         </div>
                         <div className="content">
                             <div className={`status-box status-${currentStatus}`}>
-                                {currentStatus === 'listening' && '🎤 Listening to you...'}
-                                {currentStatus === 'speaking' && '🔊 Patient speaking...'}
+                                {currentStatus === 'listening' && '👂 Listening to you... (SPEAK CLEARLY AND SLOWLY)'}
+                                {currentStatus === 'speaking' && '🔊 Patient speaking... (AI will wait 5 seconds after you stop)'}
                                 {currentStatus === 'thinking' && '💭 Processing...'}
-                                {currentStatus === 'idle' && '⏸️ Ready'}
+                                {currentStatus === 'idle' && '⏸️ Ready - Start speaking when patient answers'}
+                            </div>
+                            
+                            <div style={{padding: '15px', background: '#fff3e0', borderRadius: '10px', marginBottom: '15px', fontSize: '14px'}}>
+                                <strong>💡 Tips for Better Call Quality:</strong>
+                                <ul style={{marginLeft: '20px', marginTop: '8px'}}>
+                                    <li><strong>Speak clearly</strong> at a moderate, steady pace</li>
+                                    <li><strong>Pause 2-3 seconds</strong> between sentences</li>
+                                    <li><strong>Avoid filler words</strong> like "um", "uh", "like" when possible</li>
+                                    <li><strong>Use a headset microphone</strong> for best audio quality</li>
+                                    <li>AI waits 5 full seconds after you stop before responding</li>
+                                </ul>
                             </div>
                             
                             {interimText && (
-                                <div style={{padding: '10px', background: '#f0f0f0', borderRadius: '8px', marginBottom: '15px', fontStyle: 'italic'}}>
-                                    Hearing: "{interimText}"
+                                <div style={{padding: '10px', background: '#e3f2fd', borderRadius: '8px', marginBottom: '15px', fontStyle: 'italic', border: '2px solid #2196f3'}}>
+                                    <strong>Hearing you now:</strong> "{interimText}"
                                 </div>
                             )}
                             
-                            <div className="chat-container">
+                            <div className="chat-container" ref={chatContainerRef}>
                                 {messages.map((msg, i) => (
                                     <div key={i} className={`message ${msg.type}`}>
                                         {msg.type === 'staff' && <strong>You: </strong>}
@@ -2167,6 +1346,53 @@ Return ONLY valid JSON (no markdown, no code blocks):
 
             // SCORING SCREEN
             if (gameState === 'scoring') {
+                // LOADING STATE - show while waiting for scoring
+                if (!scoreData) {
+                    return (
+                        <div className="container">
+                            <div className="header">
+                                <h1>⏳ Evaluating Your Call...</h1>
+                                <p>Please wait</p>
+                            </div>
+                            <div className="content">
+                                <div style={{padding: '40px', textAlign: 'center'}}>
+                                    <div style={{fontSize: '48px', marginBottom: '20px'}}>🔄</div>
+                                    <p style={{fontSize: '18px', marginBottom: '10px'}}>Analyzing conversation...</p>
+                                    <p style={{fontSize: '14px', color: '#666'}}>This usually takes 5-10 seconds</p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+                
+                // ERROR STATE - if scoreData exists but has no scores
+                if (!scoreData.scores) {
+                    return (
+                        <div className="container">
+                            <div className="header">
+                                <h1>⚠️ Scoring Error</h1>
+                                <p>Unable to score call</p>
+                            </div>
+                            <div className="content">
+                                <div style={{padding: '20px', background: '#ffebee', borderRadius: '10px', marginBottom: '20px'}}>
+                                    <p><strong>The scoring system encountered an error.</strong></p>
+                                    <p style={{marginTop: '10px'}}>Error: {scoreData.summary || 'Unknown error'}</p>
+                                    <p style={{marginTop: '10px'}}>This usually happens if:</p>
+                                    <ul style={{marginLeft: '20px', marginTop: '10px'}}>
+                                        <li>The call was too short</li>
+                                        <li>There was a connection issue</li>
+                                        <li>Your API key is invalid or out of credits</li>
+                                    </ul>
+                                </div>
+                                <button className="start-btn" onClick={resetGame}>
+                                    Try Another Call
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+                
+                // NORMAL SCORING DISPLAY
                 const checkpointTotal = Object.values(scoreData.scores).reduce((sum, c) => sum + c.score, 0);
                 const passed = scoreData.totalScore >= 70;
                 
@@ -2215,7 +1441,7 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                 </div>
                                 
                                 <div style={{textAlign: 'center', marginBottom: '20px', padding: '15px', background: scoreData.patientBooked ? '#e8f5e9' : '#ffebee', borderRadius: '10px'}}>
-                                    <strong>{scoreData.patientBooked ? '✅ Patient Booked!' : '❌ Patient Did Not Book'}</strong>
+                                    <strong>{scoreData.patientBooked ? '✅ Patient Booked Appointment!' : '❌ Patient Did Not Book'}</strong>
                                 </div>
                                 
                                 {scoreData.summary && (
@@ -2228,13 +1454,13 @@ Return ONLY valid JSON (no markdown, no code blocks):
                                 
                                 {Object.entries(scoreData.scores).map(([key, data]) => {
                                     const labels = {
-                                        greeting: 'Greeting & Introduction',
-                                        reason: 'Identified Reason for Call',
-                                        scheduling: 'Scheduling & Time',
-                                        patientInfo: 'Collected Patient Info',
-                                        referral: 'Asked Referral Source',
-                                        feeExplanation: 'Explained Fee & Inclusions',
-                                        closing: 'Professional Closing'
+                                        introduction: 'Professional Introduction',
+                                        healthHistory: 'Asked About Health History',
+                                        purposeStated: 'Clearly Stated Purpose',
+                                        appointmentOptions: 'Proposed Specific Times',
+                                        objectionHandling: 'Handled Objections Well',
+                                        paymentCollection: 'Collected Initial Payment',
+                                        closingConfirmation: 'Confirmed & Closed Professionally'
                                     };
                                     
                                     return (
